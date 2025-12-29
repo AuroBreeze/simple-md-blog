@@ -76,7 +76,8 @@ summary: 布局与功能的快速预览。
   "enable_atom": true,
   "enable_sitemap": true,
   "enable_404": true,
-  "write_nojekyll": true
+  "write_nojekyll": true,
+  "analytics_file": "analytics.html"
 }
 ```
 
@@ -100,3 +101,4 @@ python build.py --output docs
 - Sitemap：生成 `sitemap.xml`，同样依赖 `site_url`，可用 `enable_sitemap` 控制。
 - 404 页面：自动生成 `404.html`，可用 `enable_404` 控制。
 - `.nojekyll`：输出根目录会写入 `.nojekyll`，可用 `write_nojekyll` 控制。
+- 统计脚本：配置 `analytics_file` 或 `analytics_html`，会注入到页面底部。

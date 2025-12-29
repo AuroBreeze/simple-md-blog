@@ -237,6 +237,23 @@ def clean_output_dir(output_dir: Path, project_root: Path) -> None:
     shutil.rmtree(output_dir)
 
 
+def resolve_analytics(args: argparse.Namespace) -> str:
+    html_snippet = (args.analytics_html or "").strip()
+    if html_snippet:
+        return html_snippet
+    file_value = (args.analytics_file or "").strip()
+    if not file_value:
+        return ""
+    path = Path(file_value)
+    if not path.is_absolute():
+        config_path = Path(args.config).resolve()
+        path = config_path.parent / path
+    if not path.exists():
+        print(f"Analytics file not found: {path}", file=sys.stderr)
+        return ""
+    return path.read_text(encoding="utf-8")
+
+
 def render_template(template: str, **context: str) -> str:
     output = template
     late_keys = {"content", "sidebar"}
@@ -335,7 +352,12 @@ def build_post_cards(posts: list[dict], root: str) -> str:
 
 
 def build_index(
-    base_template: str, output_dir: Path, posts: list[dict], category_map: dict, args: argparse.Namespace
+    base_template: str,
+    output_dir: Path,
+    posts: list[dict],
+    category_map: dict,
+    args: argparse.Namespace,
+    analytics_html: str,
 ) -> None:
     root = "."
     sidebar = build_sidebar(category_map, root, args.site_description)
@@ -358,12 +380,18 @@ def build_index(
         site_description=site_description,
         year=str(dt.datetime.now().year),
         extra_head="",
+        analytics=analytics_html,
     )
     write_text(output_dir / "index.html", html_doc)
 
 
 def build_posts(
-    base_template: str, output_dir: Path, posts: list[dict], category_map: dict, args: argparse.Namespace
+    base_template: str,
+    output_dir: Path,
+    posts: list[dict],
+    category_map: dict,
+    args: argparse.Namespace,
+    analytics_html: str,
 ) -> None:
     root = ".."
     site_name = html.escape(args.site_name)
@@ -394,12 +422,17 @@ def build_posts(
             site_description=site_description,
             year=str(dt.datetime.now().year),
             extra_head="",
+            analytics=analytics_html,
         )
         write_text(output_dir / "posts" / f"{post['slug']}.html", html_doc)
 
 
 def build_categories(
-    base_template: str, output_dir: Path, category_map: dict, args: argparse.Namespace
+    base_template: str,
+    output_dir: Path,
+    category_map: dict,
+    args: argparse.Namespace,
+    analytics_html: str,
 ) -> None:
     root = ".."
     sidebar = build_sidebar(category_map, root, args.site_description)
@@ -423,12 +456,18 @@ def build_categories(
             site_description=site_description,
             year=str(dt.datetime.now().year),
             extra_head="",
+            analytics=analytics_html,
         )
         write_text(output_dir / "categories" / f"{slugify(category)}.html", html_doc)
 
 
 def build_search(
-    base_template: str, output_dir: Path, posts: list[dict], category_map: dict, args: argparse.Namespace
+    base_template: str,
+    output_dir: Path,
+    posts: list[dict],
+    category_map: dict,
+    args: argparse.Namespace,
+    analytics_html: str,
 ) -> None:
     root = "."
     sidebar = build_sidebar(category_map, root, args.site_description)
@@ -456,6 +495,7 @@ def build_search(
         site_description=site_description,
         year=str(dt.datetime.now().year),
         extra_head=extra_head,
+        analytics=analytics_html,
     )
     write_text(output_dir / "search.html", html_doc)
 
@@ -603,7 +643,13 @@ def build_sitemap(output_dir: Path, posts: list[dict], category_map: dict, site_
     write_text(output_dir / "sitemap.xml", sitemap)
 
 
-def build_404(base_template: str, output_dir: Path, category_map: dict, args: argparse.Namespace) -> None:
+def build_404(
+    base_template: str,
+    output_dir: Path,
+    category_map: dict,
+    args: argparse.Namespace,
+    analytics_html: str,
+) -> None:
     root = "."
     sidebar = build_sidebar(category_map, root, args.site_description)
     content = (
@@ -626,6 +672,7 @@ def build_404(base_template: str, output_dir: Path, category_map: dict, args: ar
         site_description=html.escape(args.site_description),
         year=str(dt.datetime.now().year),
         extra_head="",
+        analytics=analytics_html,
     )
     write_text(output_dir / "404.html", html_doc)
 
@@ -662,6 +709,7 @@ def build_site(args: argparse.Namespace) -> None:
     if args.write_nojekyll:
         write_nojekyll(output_dir)
 
+    analytics_html = resolve_analytics(args)
     site_url = (args.site_url or "").strip()
     if not site_url and custom_domain:
         site_url = f"https://{custom_domain}"
@@ -711,10 +759,10 @@ def build_site(args: argparse.Namespace) -> None:
         for category in post["categories"]:
             category_map.setdefault(category, []).append(post)
 
-    build_index(base_template, output_dir, posts, category_map, args)
-    build_posts(base_template, output_dir, posts, category_map, args)
-    build_categories(base_template, output_dir, category_map, args)
-    build_search(base_template, output_dir, posts, category_map, args)
+    build_index(base_template, output_dir, posts, category_map, args, analytics_html)
+    build_posts(base_template, output_dir, posts, category_map, args, analytics_html)
+    build_categories(base_template, output_dir, category_map, args, analytics_html)
+    build_search(base_template, output_dir, posts, category_map, args, analytics_html)
     build_search_index(output_dir, posts)
     if args.enable_rss:
         build_rss(output_dir, posts, site_url, args, args.feed_limit)
@@ -723,7 +771,7 @@ def build_site(args: argparse.Namespace) -> None:
     if args.enable_sitemap:
         build_sitemap(output_dir, posts, category_map, site_url)
     if args.enable_404:
-        build_404(base_template, output_dir, category_map, args)
+        build_404(base_template, output_dir, category_map, args, analytics_html)
 
 
 def main() -> None:
@@ -815,6 +863,16 @@ def main() -> None:
         action=argparse.BooleanOptionalAction,
         default=cfg_bool("write_nojekyll", True),
         help="Write .nojekyll in the output directory.",
+    )
+    parser.add_argument(
+        "--analytics-file",
+        default=cfg_str("analytics_file", ""),
+        help="Path to analytics HTML snippet file.",
+    )
+    parser.add_argument(
+        "--analytics-html",
+        default=cfg_str("analytics_html", ""),
+        help="Inline analytics HTML snippet.",
     )
     args = parser.parse_args()
     build_site(args)

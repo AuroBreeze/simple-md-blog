@@ -10,5 +10,6 @@
   "enable_atom": true,
   "enable_sitemap": true,
   "enable_404": true,
-  "write_nojekyll": true
+  "write_nojekyll": true,
+  "analytics_file": "analytics.html"
 }
