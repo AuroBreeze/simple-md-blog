@@ -2,7 +2,7 @@
 title: MIT 6.S081: Operating System Engineering
 date: 2025-12-12
 time: 09:30
-archive: Project
+archive: [Project, xv6-2023]
 categories: [Notes, Project]
 summary: 关于我结束xv6项目的感言，我的收获，不足以及接下来的方向。
 ---

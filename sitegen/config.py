@@ -66,3 +66,20 @@ def resolve_about_html(args: object) -> str:
 
     site_description = getattr(args, "site_description", "")
     return f"<p>{html.escape(site_description)}</p>"
+
+
+def resolve_widget_html(args: object) -> str:
+    html_snippet = (getattr(args, "widget_html", "") or "").strip()
+    if html_snippet:
+        return html_snippet
+    file_value = (getattr(args, "widget_file", "") or "").strip()
+    if not file_value:
+        return ""
+    path = Path(file_value)
+    if not path.is_absolute():
+        config_path = Path(getattr(args, "config", "site.json")).resolve()
+        path = config_path.parent / path
+    if not path.exists():
+        print(f"Widget file not found: {path}", file=sys.stderr)
+        return ""
+    return path.read_text(encoding="utf-8")

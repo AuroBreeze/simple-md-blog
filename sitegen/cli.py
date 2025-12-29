@@ -7,7 +7,7 @@ from pathlib import Path
 
 import markdown
 
-from .config import load_config, resolve_about_html, resolve_analytics
+from .config import load_config, resolve_about_html, resolve_analytics, resolve_widget_html
 from .content import (
     extract_title,
     get_categories,
@@ -72,6 +72,7 @@ def build_site(args: argparse.Namespace) -> None:
 
     analytics_html = resolve_analytics(args)
     about_html = resolve_about_html(args)
+    widget_html = resolve_widget_html(args)
     site_url = (args.site_url or "").strip()
     if not site_url and custom_domain:
         site_url = f"https://{custom_domain}"
@@ -127,13 +128,17 @@ def build_site(args: argparse.Namespace) -> None:
         for category in post["categories"]:
             category_map.setdefault(category, []).append(post)
 
-    total_pages = build_index(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
-    build_posts(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
-    build_categories(base_template, output_dir, category_map, args, analytics_html, about_html)
-    build_search(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
+    total_pages = build_index(
+        base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html
+    )
+    build_posts(
+        base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html
+    )
+    build_categories(base_template, output_dir, category_map, args, analytics_html, about_html, widget_html)
+    build_search(base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html)
     build_search_index(output_dir, posts)
-    build_about(base_template, output_dir, category_map, args, analytics_html, about_html)
-    build_archive(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
+    build_about(base_template, output_dir, category_map, args, analytics_html, about_html, widget_html)
+    build_archive(base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html)
     if args.enable_rss:
         build_rss(output_dir, posts, site_url, args, args.feed_limit)
     if args.enable_atom:
@@ -141,7 +146,7 @@ def build_site(args: argparse.Namespace) -> None:
     if args.enable_sitemap:
         build_sitemap(output_dir, posts, category_map, site_url, total_pages)
     if args.enable_404:
-        build_404(base_template, output_dir, category_map, args, analytics_html, about_html)
+        build_404(base_template, output_dir, category_map, args, analytics_html, about_html, widget_html)
 
 
 def main() -> None:
@@ -249,6 +254,16 @@ def main() -> None:
         "--analytics-html",
         default=cfg_str("analytics_html", ""),
         help="Inline analytics HTML snippet.",
+    )
+    parser.add_argument(
+        "--widget-file",
+        default=cfg_str("widget_file", ""),
+        help="Path to data widget HTML snippet file.",
+    )
+    parser.add_argument(
+        "--widget-html",
+        default=cfg_str("widget_html", ""),
+        help="Inline data widget HTML snippet.",
     )
     parser.add_argument(
         "--about-text",

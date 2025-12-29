@@ -24,7 +24,9 @@ def build_category_list(category_map: dict, root: str) -> str:
     return "\n".join(items) if items else "<li>No categories yet.</li>"
 
 
-def build_sidebar(category_map: dict, root: str, about_html: str, toc_html: str = "") -> str:
+def build_sidebar(
+    category_map: dict, root: str, about_html: str, toc_html: str = "", widget_html: str = ""
+) -> str:
     categories_html = build_category_list(category_map, root)
     panels = [
         '<div class="panel">'
@@ -32,6 +34,13 @@ def build_sidebar(category_map: dict, root: str, about_html: str, toc_html: str 
         f"{about_html}"
         "</div>"
     ]
+    if widget_html:
+        panels.append(
+            '<div class="panel panel-widget">'
+            "<h3>Stats</h3>"
+            f"{widget_html}"
+            "</div>"
+        )
     if toc_html and "<li" in toc_html:
         panels.append(
             '<div class="panel">'
@@ -102,6 +111,7 @@ def build_post_sidebar(
     toc_html: str,
     post: dict,
     archive_map: dict,
+    widget_html: str,
 ) -> str:
     categories_html = build_category_list(category_map, root)
     panels = [
@@ -110,6 +120,13 @@ def build_post_sidebar(
         f"{about_html}"
         "</div>"
     ]
+    if widget_html:
+        panels.append(
+            '<div class="panel panel-widget">'
+            "<h3>Stats</h3>"
+            f"{widget_html}"
+            "</div>"
+        )
     sections = []
     if toc_html and "<li" in toc_html:
         sections.append(("contents", "Contents", toc_html))
@@ -161,6 +178,7 @@ def build_index(
     args: object,
     analytics_html: str,
     about_html: str,
+    widget_html: str,
 ) -> int:
     def page_url(page: int) -> str:
         if page == 1:
@@ -191,7 +209,7 @@ def build_index(
         return f'<nav class="pagination">{"".join(items)}</nav>'
 
     root = "."
-    sidebar = build_sidebar(category_map, root, about_html)
+    sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     per_page = max(1, int(getattr(args, "posts_per_page", 8)))
@@ -237,6 +255,7 @@ def build_posts(
     args: object,
     analytics_html: str,
     about_html: str,
+    widget_html: str,
 ) -> None:
     root = ".."
     site_name = html.escape(args.site_name)
@@ -246,7 +265,15 @@ def build_posts(
         for label in post.get("archives", []):
             archive_map.setdefault(label, []).append(post)
     for post in posts:
-        sidebar = build_post_sidebar(category_map, root, about_html, post.get("toc", ""), post, archive_map)
+        sidebar = build_post_sidebar(
+            category_map,
+            root,
+            about_html,
+            post.get("toc", ""),
+            post,
+            archive_map,
+            widget_html,
+        )
         title = html.escape(post["title"])
         category_links = " ".join(
             f'<a class="chip" href="{root}/categories/{slugify(cat)}.html">{html.escape(cat)}</a>'
@@ -283,9 +310,10 @@ def build_categories(
     args: object,
     analytics_html: str,
     about_html: str,
+    widget_html: str,
 ) -> None:
     root = ".."
-    sidebar = build_sidebar(category_map, root, about_html)
+    sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     for category, posts in sorted(category_map.items(), key=lambda x: x[0].lower()):
@@ -319,9 +347,10 @@ def build_search(
     args: object,
     analytics_html: str,
     about_html: str,
+    widget_html: str,
 ) -> None:
     root = "."
-    sidebar = build_sidebar(category_map, root, about_html)
+    sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     content = (
@@ -373,6 +402,7 @@ def build_about(
     args: object,
     analytics_html: str,
     about_html: str,
+    widget_html: str,
 ) -> None:
     about_path = Path("pages") / "about.md"
     if not about_path.exists():
@@ -389,7 +419,7 @@ def build_about(
     toc_html = md.toc
     md.reset()
     html_content = fix_relative_img_src(html_content, ".")
-    sidebar = build_sidebar(category_map, ".", about_html, toc_html)
+    sidebar = build_sidebar(category_map, ".", about_html, toc_html, widget_html)
     content = (
         '<article class="post">'
         f'<h1 class="post-title">{html.escape(title)}</h1>'
@@ -419,9 +449,10 @@ def build_archive(
     args: object,
     analytics_html: str,
     about_html: str,
+    widget_html: str,
 ) -> None:
     root = "."
-    sidebar = build_sidebar(category_map, root, about_html)
+    sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     archive_groups: dict[str, list[dict]] = {}
     date_groups: dict[str, list[dict]] = {}
     year_counts: dict[int, int] = {}
@@ -662,9 +693,10 @@ def build_404(
     args: object,
     analytics_html: str,
     about_html: str,
+    widget_html: str,
 ) -> None:
     root = "."
-    sidebar = build_sidebar(category_map, root, about_html)
+    sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     content = (
         '<div class="section-head">'
         "<h2>404</h2>"
