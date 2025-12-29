@@ -181,6 +181,12 @@ a:hover {
   max-height: min(50vh, 420px);
   overflow: auto;
   padding-right: 4px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.sidebar-tabcontent::-webkit-scrollbar {
+  display: none;
 }
 
 .sidebar-tabs.is-js .sidebar-tabpanel {
