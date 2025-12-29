@@ -51,6 +51,14 @@ summary: 布局与功能的快速预览。
 ![Alt](images/your-image.png)
 ```
 
+## GitHub Actions 自动部署
+
+仓库每次推送后自动构建并发布到 GitHub Pages：
+
+1. 确保分支名是 `main` 或 `master`（如不同，请修改 `.github/workflows/pages.yml`）。
+2. 在 GitHub Pages 设置中将 Source 选择为 `GitHub Actions`。
+3. 推送后等待 Actions 运行完成即可访问。
+
 ## GitHub Pages
 
 如果你想用 `docs/` 作为 Pages 的发布目录：
