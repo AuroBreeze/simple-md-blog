@@ -114,6 +114,15 @@ def build_site(args: argparse.Namespace) -> bool:
     analytics_html = resolve_analytics(args)
     about_html = resolve_about_html(args)
     widget_html = resolve_widget_html(args)
+    theme_default = (getattr(args, "theme_default", "") or "auto").strip().lower()
+    if theme_default not in {"auto", "light", "dark"}:
+        theme_default = "auto"
+    enable_theme_toggle = parse_bool(getattr(args, "enable_theme_toggle", True))
+    theme_toggle = (
+        '<button class="theme-toggle" type="button" data-theme-toggle>Dark</button>'
+        if enable_theme_toggle
+        else ""
+    )
 
     generator_paths = []
     build_script = project_root / "build.py"
@@ -402,7 +411,16 @@ def build_site(args: argparse.Namespace) -> bool:
             reverse=True,
         )
         total_pages = build_index(
-            base_template, output_dir, index_posts, category_map, args, analytics_html, about_html, widget_html
+            base_template,
+            output_dir,
+            index_posts,
+            category_map,
+            args,
+            analytics_html,
+            about_html,
+            widget_html,
+            theme_toggle,
+            theme_default,
         )
         rebuild_all_posts = (
             full_rebuild
@@ -420,6 +438,8 @@ def build_site(args: argparse.Namespace) -> bool:
                 analytics_html,
                 about_html,
                 widget_html,
+                theme_toggle,
+                theme_default,
                 workers=build_workers,
             )
         elif changed_slugs:
@@ -432,13 +452,47 @@ def build_site(args: argparse.Namespace) -> bool:
                 analytics_html,
                 about_html,
                 widget_html,
+                theme_toggle,
+                theme_default,
                 only_slugs=changed_slugs,
                 workers=build_workers,
             )
-        build_categories(base_template, output_dir, category_map, args, analytics_html, about_html, widget_html)
-        build_search(base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html)
+        build_categories(
+            base_template,
+            output_dir,
+            category_map,
+            args,
+            analytics_html,
+            about_html,
+            widget_html,
+            theme_toggle,
+            theme_default,
+        )
+        build_search(
+            base_template,
+            output_dir,
+            posts,
+            category_map,
+            args,
+            analytics_html,
+            about_html,
+            widget_html,
+            theme_toggle,
+            theme_default,
+        )
         build_search_index(output_dir, posts)
-        build_archive(base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html)
+        build_archive(
+            base_template,
+            output_dir,
+            posts,
+            category_map,
+            args,
+            analytics_html,
+            about_html,
+            widget_html,
+            theme_toggle,
+            theme_default,
+        )
         if args.enable_rss:
             build_rss(output_dir, posts, site_url, args, args.feed_limit)
         if args.enable_atom:
@@ -446,9 +500,29 @@ def build_site(args: argparse.Namespace) -> bool:
         if args.enable_sitemap:
             build_sitemap(output_dir, posts, category_map, site_url, total_pages)
         if args.enable_404:
-            build_404(base_template, output_dir, category_map, args, analytics_html, about_html, widget_html)
+            build_404(
+                base_template,
+                output_dir,
+                category_map,
+                args,
+                analytics_html,
+                about_html,
+                widget_html,
+                theme_toggle,
+                theme_default,
+            )
     if about_changed:
-        build_about(base_template, output_dir, category_map, args, analytics_html, about_html, widget_html)
+        build_about(
+            base_template,
+            output_dir,
+            category_map,
+            args,
+            analytics_html,
+            about_html,
+            widget_html,
+            theme_toggle,
+            theme_default,
+        )
 
     if output_exists and aggregate_needed:
         removed_slugs = set()
@@ -619,6 +693,17 @@ def main() -> None:
         action=argparse.BooleanOptionalAction,
         default=cfg_bool("write_nojekyll", True),
         help="Write .nojekyll in the output directory.",
+    )
+    parser.add_argument(
+        "--enable-theme-toggle",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("enable_theme_toggle", True),
+        help="Show the theme toggle button in the navigation.",
+    )
+    parser.add_argument(
+        "--theme-default",
+        default=cfg_str("theme_default", "auto"),
+        help="Default theme mode: auto, light, or dark.",
     )
     parser.add_argument(
         "--incremental",

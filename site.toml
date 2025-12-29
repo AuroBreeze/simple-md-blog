@@ -28,6 +28,12 @@ build_workers = 8
 # 是否写入 .nojekyll
 write_nojekyll = true
 
+# 主题设置
+# 是否显示夜间模式开关
+enable_theme_toggle = true
+# 默认主题：auto / light / dark
+theme_default = "auto"
+
 # 列表与目录
 # 首页每页文章数量（启用分页）
 posts_per_page = 8

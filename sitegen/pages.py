@@ -184,6 +184,8 @@ def build_index(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    theme_toggle: str,
+    theme_default: str,
 ) -> int:
     def page_url(page: int) -> str:
         if page == 1:
@@ -244,6 +246,8 @@ def build_index(
             site_description=site_description,
             year=str(dt.datetime.now().year),
             extra_head="",
+            theme_toggle=theme_toggle,
+            theme_default=theme_default,
             analytics=analytics_html,
         )
         filename = "index.html" if page == 1 else page_url(page)
@@ -261,6 +265,8 @@ def build_posts(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    theme_toggle: str,
+    theme_default: str,
     only_slugs=None,
     workers: int = 1,
 ) -> None:
@@ -328,6 +334,8 @@ def build_posts(
             site_description=site_description,
             year=str(dt.datetime.now().year),
             extra_head=f'<script src="{root}/js/sidebar-tabs.js" defer></script>',
+            theme_toggle=theme_toggle,
+            theme_default=theme_default,
             analytics=analytics_html,
         )
         write_text(output_dir / "posts" / f"{post['slug']}.html", html_doc)
@@ -350,6 +358,8 @@ def build_categories(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    theme_toggle: str,
+    theme_default: str,
 ) -> None:
     root = ".."
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
@@ -373,6 +383,8 @@ def build_categories(
             site_description=site_description,
             year=str(dt.datetime.now().year),
             extra_head="",
+            theme_toggle=theme_toggle,
+            theme_default=theme_default,
             analytics=analytics_html,
         )
         write_text(output_dir / "categories" / f"{slugify(category)}.html", html_doc)
@@ -387,6 +399,8 @@ def build_search(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    theme_toggle: str,
+    theme_default: str,
 ) -> None:
     root = "."
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
@@ -414,6 +428,8 @@ def build_search(
         site_description=site_description,
         year=str(dt.datetime.now().year),
         extra_head=extra_head,
+        theme_toggle=theme_toggle,
+        theme_default=theme_default,
         analytics=analytics_html,
     )
     write_text(output_dir / "search.html", html_doc)
@@ -442,6 +458,8 @@ def build_about(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    theme_toggle: str,
+    theme_default: str,
 ) -> None:
     about_path = Path("pages") / "about.md"
     if not about_path.exists():
@@ -475,6 +493,8 @@ def build_about(
         site_description=html.escape(args.site_description),
         year=str(dt.datetime.now().year),
         extra_head="",
+        theme_toggle=theme_toggle,
+        theme_default=theme_default,
         analytics=analytics_html,
     )
     write_text(output_dir / "about.html", html_doc)
@@ -489,6 +509,8 @@ def build_archive(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    theme_toggle: str,
+    theme_default: str,
 ) -> None:
     root = "."
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
@@ -587,6 +609,8 @@ def build_archive(
         site_description=html.escape(args.site_description),
         year=str(dt.datetime.now().year),
         extra_head=f'<script src="{root}/js/archive.js" defer></script>',
+        theme_toggle=theme_toggle,
+        theme_default=theme_default,
         analytics=analytics_html,
     )
     write_text(output_dir / "archive.html", html_doc)
@@ -735,6 +759,8 @@ def build_404(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    theme_toggle: str,
+    theme_default: str,
 ) -> None:
     root = "."
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
@@ -758,6 +784,8 @@ def build_404(
         site_description=html.escape(args.site_description),
         year=str(dt.datetime.now().year),
         extra_head="",
+        theme_toggle=theme_toggle,
+        theme_default=theme_default,
         analytics=analytics_html,
     )
     write_text(output_dir / "404.html", html_doc)

@@ -1,10 +1,21 @@
 ﻿<!doctype html>
-<html lang="en">
+<html lang="en" data-theme-default="{{theme_default}}">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{title}}</title>
   <meta name="description" content="{{site_description}}">
+  <script>
+    (() => {
+      const root = document.documentElement;
+      const stored = localStorage.getItem("theme");
+      const fallback = root.dataset.themeDefault || "auto";
+      const prefersDark = window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches;
+      const resolved = stored || fallback;
+      const mode = resolved === "auto" ? (prefersDark ? "dark" : "light") : resolved;
+      root.dataset.theme = mode;
+    })();
+  </script>
   <link rel="stylesheet" href="{{root}}/css/style.css">
   <link rel="alternate" type="application/rss+xml" title="RSS" href="{{root}}/rss.xml">
   <link rel="alternate" type="application/atom+xml" title="Atom" href="{{root}}/atom.xml">
@@ -23,6 +34,9 @@
     <a href="{{root}}/about.html">About</a>
     <a href="{{root}}/archive.html">Archive</a>
     <a href="{{root}}/search.html">Search</a>
+    <div class="nav-actions">
+      {{theme_toggle}}
+    </div>
   </nav>
   <main class="layout">
     <section class="content">
@@ -37,6 +51,7 @@
     <span class="dot">•</span>
     <span>{{year}}</span>
   </footer>
+  <script src="{{root}}/js/theme.js" defer></script>
   {{analytics}}
 </body>
 </html>

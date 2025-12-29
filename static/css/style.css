@@ -12,6 +12,18 @@
   --shadow: 0 18px 35px rgba(31, 24, 16, 0.12);
 }
 
+[data-theme="dark"] {
+  --bg: #14110d;
+  --bg-soft: #1b1611;
+  --ink: #f6efe6;
+  --muted: #b0a59a;
+  --primary: #70c0c1;
+  --secondary: #e5a487;
+  --card: #1d1812;
+  --border: #352c23;
+  --shadow: 0 18px 35px rgba(0, 0, 0, 0.45);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -45,6 +57,14 @@ body::after {
   height: 420px;
   background: radial-gradient(circle at bottom, rgba(44, 110, 111, 0.35), transparent 70%);
   z-index: -1;
+}
+
+[data-theme="dark"] body::before {
+  background: radial-gradient(circle at top, rgba(229, 164, 135, 0.2), transparent 70%);
+}
+
+[data-theme="dark"] body::after {
+  background: radial-gradient(circle at bottom, rgba(112, 192, 193, 0.2), transparent 70%);
 }
 
 a {
@@ -113,8 +133,38 @@ a:hover {
   border-bottom: 1px solid var(--border);
 }
 
+[data-theme="dark"] .site-nav {
+  background: rgba(20, 17, 13, 0.8);
+}
+
 .site-nav a {
   font-weight: 600;
+}
+
+.nav-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.nav-actions:empty {
+  display: none;
+}
+
+.theme-toggle {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.theme-toggle:hover {
+  border-color: var(--primary);
+  color: var(--primary);
 }
 
 .layout {
@@ -296,6 +346,10 @@ a:hover {
   color: var(--ink);
 }
 
+[data-theme="dark"] .post-words {
+  background: #2a2218;
+}
+
 .post-updated {
   font-size: 0.8rem;
   color: var(--muted);
@@ -309,6 +363,12 @@ a:hover {
   background: rgba(210, 116, 54, 0.12);
   color: #8a4f2a;
   font-weight: 600;
+}
+
+[data-theme="dark"] .stale-warning {
+  border-color: rgba(229, 164, 135, 0.35);
+  background: rgba(229, 164, 135, 0.15);
+  color: #f1c8ac;
 }
 
 .post-title {
@@ -385,12 +445,21 @@ a:hover {
   font-size: 0.95em;
 }
 
+[data-theme="dark"] .post-body :not(pre) > code {
+  background: #2a2218;
+  border-color: #3b3025;
+}
+
 .post-body blockquote {
   margin: 16px 0;
   padding: 12px 16px;
   border-left: 4px solid var(--secondary);
   background: #f8efe3;
   color: var(--ink);
+}
+
+[data-theme="dark"] .post-body blockquote {
+  background: #2a2218;
 }
 
 .post-body blockquote p {
@@ -426,6 +495,11 @@ a:hover {
   padding: 2px 8px;
   border-radius: 999px;
   font-size: 0.75rem;
+}
+
+[data-theme="dark"] .category-list .count {
+  background: #2a2218;
+  color: var(--ink);
 }
 
 .archive-group {

@@ -13,6 +13,7 @@
 - RSS/Atom + sitemap + 404 + .nojekyll
 - 侧栏 About/目录/分类/归档可切换
 - 增量构建 + 多线程加速
+- 夜间模式开关
 
 ## 目录结构
 
@@ -95,6 +96,9 @@ enable_atom = true
 enable_sitemap = true
 enable_404 = true
 write_nojekyll = true
+
+enable_theme_toggle = true
+theme_default = "auto"
 
 analytics_file = "templates/analytics.html"
 widget_file = "templates/widget.html"
