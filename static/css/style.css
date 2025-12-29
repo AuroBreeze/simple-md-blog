@@ -307,6 +307,45 @@ a:hover {
   font-size: 0.75rem;
 }
 
+.archive-group {
+  margin-bottom: 24px;
+}
+
+.archive-group h3 {
+  font-family: "Fraunces", serif;
+  margin: 0 0 10px;
+}
+
+.archive-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.archive-list li {
+  display: flex;
+  gap: 12px;
+  align-items: baseline;
+  color: var(--muted);
+}
+
+.archive-date {
+  font-size: 0.85rem;
+  min-width: 110px;
+  color: var(--muted);
+}
+
+.archive-list a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.archive-list a:hover {
+  color: var(--secondary);
+}
+
 .toc {
   margin: 0;
   color: var(--muted);

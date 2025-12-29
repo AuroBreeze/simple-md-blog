@@ -596,6 +596,63 @@ def build_about(
     write_text(output_dir / "about.html", html_doc)
 
 
+def build_archive(
+    base_template: str,
+    output_dir: Path,
+    posts: list[dict],
+    category_map: dict,
+    args: argparse.Namespace,
+    analytics_html: str,
+    about_html: str,
+) -> None:
+    root = "."
+    sidebar = build_sidebar(category_map, root, about_html)
+    groups: list[str] = []
+    current_key = None
+    current_items: list[str] = []
+    for post in posts:
+        key = post["date_dt"].strftime("%Y-%m")
+        if key != current_key:
+            if current_items:
+                groups.append(
+                    f'<section class="archive-group"><h3>{current_key}</h3>'
+                    f'<ul class="archive-list">{"".join(current_items)}</ul></section>'
+                )
+            current_key = key
+            current_items = []
+        title = html.escape(post["title"])
+        url = f'{root}/posts/{post["slug"]}.html'
+        current_items.append(
+            f'<li><span class="archive-date">{post["date"]}</span>'
+            f'<a href="{url}">{title}</a></li>'
+        )
+    if current_items:
+        groups.append(
+            f'<section class="archive-group"><h3>{current_key}</h3>'
+            f'<ul class="archive-list">{"".join(current_items)}</ul></section>'
+        )
+    content = (
+        '<div class="section-head">'
+        "<h2>Archive</h2>"
+        "<p>All posts by date.</p>"
+        "</div>"
+        f'{"".join(groups)}'
+    )
+    html_doc = render_template(
+        base_template,
+        title=html.escape(f"Archive | {args.site_name}"),
+        root=root,
+        content=content,
+        sidebar=sidebar,
+        site_name=html.escape(args.site_name),
+        site_description=html.escape(args.site_description),
+        year=str(dt.datetime.now().year),
+        extra_head="",
+        analytics=analytics_html,
+    )
+    write_text(output_dir / "archive.html", html_doc)
+
+
 def build_rss(
     output_dir: Path, posts: list[dict], site_url: str, args: argparse.Namespace, feed_limit: int
 ) -> None:
@@ -682,6 +739,7 @@ def build_sitemap(output_dir: Path, posts: list[dict], category_map: dict, site_
     urls = [
         (site_url + "/", None),
         (join_url(site_url, "about.html"), None),
+        (join_url(site_url, "archive.html"), None),
         (join_url(site_url, "search.html"), None),
         (join_url(site_url, "rss.xml"), None),
         (join_url(site_url, "atom.xml"), None),
@@ -849,6 +907,7 @@ def build_site(args: argparse.Namespace) -> None:
     build_search(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
     build_search_index(output_dir, posts)
     build_about(base_template, output_dir, category_map, args, analytics_html, about_html)
+    build_archive(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
     if args.enable_rss:
         build_rss(output_dir, posts, site_url, args, args.feed_limit)
     if args.enable_atom:

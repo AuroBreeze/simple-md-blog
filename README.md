@@ -7,6 +7,7 @@
 - Markdown -> HTML（代码块、表格、图片）
 - 分类页 + 全站搜索
 - 文章目录（TOC）自动生成
+- 归档页（按月归档）
 - RSS/Atom + sitemap + 404 + .nojekyll
 - front matter 支持时间与草稿
 - 侧栏 About 内容可配置
