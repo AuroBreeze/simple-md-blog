@@ -1,13 +1,25 @@
-# 简易 MD 博客
+# Simple MD Blog
 
-一个将 Markdown 生成 HTML 的极简静态博客生成器，适合用于 GitHub Pages。
+一个轻量的 Markdown 静态博客生成器，适合部署到 GitHub Pages。支持分类、搜索、目录、RSS/Atom、站点地图、自定义域名与统计脚本。
+
+## 特性
+
+- Markdown -> HTML（代码块、表格、图片）
+- 分类页 + 全站搜索
+- 文章目录（TOC）自动生成
+- RSS/Atom + sitemap + 404 + .nojekyll
+- front matter 支持时间与草稿
+- 侧栏 About 内容可配置
 
 ## 目录结构
 
-- posts/        Markdown 文章
-- static/       CSS、JS、图片（会复制到输出根目录）
-- templates/    HTML 模板
-- dist/         生成站点输出
+```
+posts/        Markdown 文章
+pages/        独立页面（如 about.md）
+static/       CSS、JS、图片（构建时复制到输出根目录）
+templates/    HTML 模板
+dist/         生成站点输出
+```
 
 ## 快速开始
 
@@ -18,54 +30,43 @@ pip install -r requirements.txt
 python build.py
 ```
 
-用浏览器打开 `dist/index.html`。
+打开 `dist/index.html` 查看效果。
 
-## 自定义
+## 写作格式
 
-你可以通过命令行覆盖站点标题和描述：
-
-```powershell
-python build.py --site-name "My Blog" --site-description "Notes from the keyboard."
-```
-
-## 写作
-
-每篇文章是 `posts/` 下的一个 `.md` 文件。可选的 front matter 示例：
+每篇文章是 `posts/` 下的 `.md` 文件。推荐使用 front matter：
 
 ```text
 ---
 title: 你好，Markdown
 date: 2025-01-05
+time: 09:30
 category: 随笔
-summary: 布局与功能的快速预览。
+summary: 这是一段摘要。
+draft: false
 ---
 ```
 
-如果省略 `title`，会自动取第一行 H1 作为标题，并从正文中移除。
+说明：
+- `time` 为可选，格式 `HH:MM` 或 `HH:MM:SS`
+- `draft: true` 会跳过生成
+- 若无 `title`，会使用正文第一行 H1
 
 ## 图片
 
-`static/` 下的内容会被复制到输出根目录。图片引用示例：
+图片放到 `static/images/`，在 Markdown 中引用：
 
 ```text
 ![Alt](images/your-image.png)
 ```
 
-## GitHub Actions 自动部署
+## 配置文件
 
-仓库每次推送后自动构建并发布到 GitHub Pages：
-
-1. 确保分支名是 `main` 或 `master`（如不同，请修改 `.github/workflows/pages.yml`）。
-2. 在 GitHub Pages 设置中将 Source 选择为 `GitHub Actions`。
-3. 推送后等待 Actions 运行完成即可访问。
-
-## 站点配置文件
-
-默认会读取 `site.json`，用于统一配置站点信息和自定义域名。CLI 参数会覆盖配置文件。
+默认读取 `site.json`，CLI 参数会覆盖配置文件。
 
 ```json
 {
-  "site_name": "Simple MD Blog",
+  "site_name": "AuroBreeze Blog",
   "site_description": "A tiny, fast Markdown blog for GitHub Pages.",
   "custom_domain": "blog.aurobreeze.top",
   "site_url": "https://blog.aurobreeze.top",
@@ -77,28 +78,51 @@ summary: 布局与功能的快速预览。
   "enable_sitemap": true,
   "enable_404": true,
   "write_nojekyll": true,
+  "analytics_file": "analytics.html",
+  "about_text": "A tiny, fast Markdown blog for GitHub Pages."
+}
+```
+
+常用命令：
+
+```powershell
+python build.py --site-name "My Blog" --site-description "Notes from the keyboard."
+python build.py --output docs
+python build.py --no-clean
+```
+
+## 侧栏 About 配置
+
+优先级：`about_html` > `about_file` > `about_text`。
+
+- `about_text`: 纯文本（自动转义并包一层 `<p>`）
+- `about_html`: 直接插入 HTML
+- `about_file`: 指向一个文件（支持 `.html`/`.md`/纯文本）
+
+## GitHub Pages + Actions
+
+项目已内置 `.github/workflows/pages.yml`，推送后自动构建并发布。
+
+1. 分支名为 `main` 或 `master`
+2. 仓库 Settings -> Pages -> Source 选择 `GitHub Actions`
+3. 等待 Actions 结束即可访问
+
+## 自定义域名
+
+1. DNS 配置 CNAME：`blog` -> `aurobreeze.github.io`
+2. 仓库 Settings -> Pages -> Custom domain 填 `blog.aurobreeze.top`
+3. 勾选 `Enforce HTTPS`
+
+构建会自动生成 `CNAME`。
+
+## 统计脚本
+
+将脚本放到 `analytics.html`，并在 `site.json` 配置：
+
+```json
+{
   "analytics_file": "analytics.html"
 }
 ```
 
-构建时会在输出目录自动生成 `CNAME`，用于 GitHub Pages 自定义域名。
-
-## GitHub Pages
-
-如果你想用 `docs/` 作为 Pages 的发布目录：
-
-```powershell
-python build.py --output docs
-```
-
-然后在 GitHub Pages 设置中选择 `docs/`。
-
-## 进阶功能
-
-- 自动清理输出：默认在构建前清空输出目录，避免旧页面残留。可用 `--no-clean` 关闭。
-- 草稿：在 front matter 中加入 `draft: true`，该文章不会生成。
-- RSS/Atom：生成 `rss.xml` 和 `atom.xml`，需要在 `site.json` 填写 `site_url`，可用 `enable_rss`/`enable_atom` 控制。
-- Sitemap：生成 `sitemap.xml`，同样依赖 `site_url`，可用 `enable_sitemap` 控制。
-- 404 页面：自动生成 `404.html`，可用 `enable_404` 控制。
-- `.nojekyll`：输出根目录会写入 `.nojekyll`，可用 `write_nojekyll` 控制。
-- 统计脚本：配置 `analytics_file` 或 `analytics_html`，会注入到页面底部。
+也可以用 `analytics_html` 直接写内联脚本内容。

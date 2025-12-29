@@ -11,5 +11,6 @@
   "enable_sitemap": true,
   "enable_404": true,
   "write_nojekyll": true,
-  "analytics_file": "analytics.html"
+  "analytics_file": "analytics.html",
+  "about_text": "A tiny, fast Markdown blog for GitHub Pages.\n\n AuroBreeze Blog\n\n/dev/self"
 }

@@ -254,6 +254,38 @@ def resolve_analytics(args: argparse.Namespace) -> str:
     return path.read_text(encoding="utf-8")
 
 
+def resolve_about_html(args: argparse.Namespace) -> str:
+    html_snippet = (args.about_html or "").strip()
+    if html_snippet:
+        return html_snippet
+
+    file_value = (args.about_file or "").strip()
+    if file_value:
+        path = Path(file_value)
+        if not path.is_absolute():
+            config_path = Path(args.config).resolve()
+            path = config_path.parent / path
+        if not path.exists():
+            print(f"About file not found: {path}", file=sys.stderr)
+        else:
+            text = path.read_text(encoding="utf-8")
+            suffix = path.suffix.lower()
+            if suffix in {".html", ".htm"}:
+                return text
+            if suffix == ".md":
+                md = markdown.Markdown(extensions=["fenced_code", "tables"])
+                return md.convert(text)
+            escaped = html.escape(text).replace("\n", "<br>")
+            return f"<p>{escaped}</p>"
+
+    text_value = (args.about_text or "").strip()
+    if text_value:
+        escaped = html.escape(text_value).replace("\n", "<br>")
+        return f"<p>{escaped}</p>"
+
+    return f"<p>{html.escape(args.site_description)}</p>"
+
+
 def render_template(template: str, **context: str) -> str:
     output = template
     late_keys = {"content", "sidebar"}
@@ -297,7 +329,7 @@ def load_config(path: Path) -> dict:
         sys.exit(1)
 
 
-def build_sidebar(category_map: dict, root: str, site_description: str, toc_html: str = "") -> str:
+def build_sidebar(category_map: dict, root: str, about_html: str, toc_html: str = "") -> str:
     items = []
     for name, posts in sorted(category_map.items(), key=lambda x: (-len(x[1]), x[0].lower())):
         slug = slugify(name)
@@ -309,7 +341,7 @@ def build_sidebar(category_map: dict, root: str, site_description: str, toc_html
     panels = [
         '<div class="panel">'
         "<h3>About</h3>"
-        f"<p>{html.escape(site_description)}</p>"
+        f"{about_html}"
         "</div>"
     ]
     if toc_html and "<li" in toc_html:
@@ -358,9 +390,10 @@ def build_index(
     category_map: dict,
     args: argparse.Namespace,
     analytics_html: str,
+    about_html: str,
 ) -> None:
     root = "."
-    sidebar = build_sidebar(category_map, root, args.site_description)
+    sidebar = build_sidebar(category_map, root, about_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     content = (
@@ -392,12 +425,13 @@ def build_posts(
     category_map: dict,
     args: argparse.Namespace,
     analytics_html: str,
+    about_html: str,
 ) -> None:
     root = ".."
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     for post in posts:
-        sidebar = build_sidebar(category_map, root, args.site_description, post.get("toc", ""))
+        sidebar = build_sidebar(category_map, root, about_html, post.get("toc", ""))
         title = html.escape(post["title"])
         category_links = " ".join(
             f'<a class="chip" href="{root}/categories/{slugify(cat)}.html">{html.escape(cat)}</a>'
@@ -433,9 +467,10 @@ def build_categories(
     category_map: dict,
     args: argparse.Namespace,
     analytics_html: str,
+    about_html: str,
 ) -> None:
     root = ".."
-    sidebar = build_sidebar(category_map, root, args.site_description)
+    sidebar = build_sidebar(category_map, root, about_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     for category, posts in sorted(category_map.items(), key=lambda x: x[0].lower()):
@@ -468,9 +503,10 @@ def build_search(
     category_map: dict,
     args: argparse.Namespace,
     analytics_html: str,
+    about_html: str,
 ) -> None:
     root = "."
-    sidebar = build_sidebar(category_map, root, args.site_description)
+    sidebar = build_sidebar(category_map, root, about_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     content = (
@@ -513,6 +549,51 @@ def build_search_index(output_dir: Path, posts: list[dict]) -> None:
             }
         )
     write_text(output_dir / "search-index.json", json.dumps(index, indent=2, ensure_ascii=True))
+
+
+def build_about(
+    base_template: str,
+    output_dir: Path,
+    category_map: dict,
+    args: argparse.Namespace,
+    analytics_html: str,
+    about_html: str,
+) -> None:
+    about_path = Path("pages") / "about.md"
+    if not about_path.exists():
+        return
+    raw_text = about_path.read_text(encoding="utf-8")
+    meta, body = parse_front_matter(raw_text)
+    title, body = extract_title(meta, body)
+    body = normalize_list_spacing(body)
+    md = markdown.Markdown(
+        extensions=["fenced_code", "tables", "toc"],
+        extension_configs={"toc": {"toc_depth": args.toc_depth}},
+    )
+    html_content = md.convert(body)
+    toc_html = md.toc
+    md.reset()
+    html_content = fix_relative_img_src(html_content, ".")
+    sidebar = build_sidebar(category_map, ".", about_html, toc_html)
+    content = (
+        '<article class="post">'
+        f'<h1 class="post-title">{html.escape(title)}</h1>'
+        f'<div class="post-body">{html_content}</div>'
+        "</article>"
+    )
+    html_doc = render_template(
+        base_template,
+        title=html.escape(f"{title} | {args.site_name}"),
+        root=".",
+        content=content,
+        sidebar=sidebar,
+        site_name=html.escape(args.site_name),
+        site_description=html.escape(args.site_description),
+        year=str(dt.datetime.now().year),
+        extra_head="",
+        analytics=analytics_html,
+    )
+    write_text(output_dir / "about.html", html_doc)
 
 
 def build_rss(
@@ -600,6 +681,7 @@ def build_sitemap(output_dir: Path, posts: list[dict], category_map: dict, site_
     site_url = site_url.rstrip("/")
     urls = [
         (site_url + "/", None),
+        (join_url(site_url, "about.html"), None),
         (join_url(site_url, "search.html"), None),
         (join_url(site_url, "rss.xml"), None),
         (join_url(site_url, "atom.xml"), None),
@@ -649,9 +731,10 @@ def build_404(
     category_map: dict,
     args: argparse.Namespace,
     analytics_html: str,
+    about_html: str,
 ) -> None:
     root = "."
-    sidebar = build_sidebar(category_map, root, args.site_description)
+    sidebar = build_sidebar(category_map, root, about_html)
     content = (
         '<div class="section-head">'
         "<h2>404</h2>"
@@ -710,6 +793,7 @@ def build_site(args: argparse.Namespace) -> None:
         write_nojekyll(output_dir)
 
     analytics_html = resolve_analytics(args)
+    about_html = resolve_about_html(args)
     site_url = (args.site_url or "").strip()
     if not site_url and custom_domain:
         site_url = f"https://{custom_domain}"
@@ -759,11 +843,12 @@ def build_site(args: argparse.Namespace) -> None:
         for category in post["categories"]:
             category_map.setdefault(category, []).append(post)
 
-    build_index(base_template, output_dir, posts, category_map, args, analytics_html)
-    build_posts(base_template, output_dir, posts, category_map, args, analytics_html)
-    build_categories(base_template, output_dir, category_map, args, analytics_html)
-    build_search(base_template, output_dir, posts, category_map, args, analytics_html)
+    build_index(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
+    build_posts(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
+    build_categories(base_template, output_dir, category_map, args, analytics_html, about_html)
+    build_search(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
     build_search_index(output_dir, posts)
+    build_about(base_template, output_dir, category_map, args, analytics_html, about_html)
     if args.enable_rss:
         build_rss(output_dir, posts, site_url, args, args.feed_limit)
     if args.enable_atom:
@@ -771,7 +856,7 @@ def build_site(args: argparse.Namespace) -> None:
     if args.enable_sitemap:
         build_sitemap(output_dir, posts, category_map, site_url)
     if args.enable_404:
-        build_404(base_template, output_dir, category_map, args, analytics_html)
+        build_404(base_template, output_dir, category_map, args, analytics_html, about_html)
 
 
 def main() -> None:
@@ -873,6 +958,21 @@ def main() -> None:
         "--analytics-html",
         default=cfg_str("analytics_html", ""),
         help="Inline analytics HTML snippet.",
+    )
+    parser.add_argument(
+        "--about-text",
+        default=cfg_str("about_text", ""),
+        help="Text content for the sidebar About panel.",
+    )
+    parser.add_argument(
+        "--about-html",
+        default=cfg_str("about_html", ""),
+        help="HTML content for the sidebar About panel.",
+    )
+    parser.add_argument(
+        "--about-file",
+        default=cfg_str("about_file", ""),
+        help="Path to file used for the sidebar About panel.",
     )
     args = parser.parse_args()
     build_site(args)
