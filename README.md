@@ -82,3 +82,12 @@ python build.py --output docs
 ```
 
 然后在 GitHub Pages 设置中选择 `docs/`。
+
+## 进阶功能
+
+- 自动清理输出：默认在构建前清空输出目录，避免旧页面残留。可用 `--no-clean` 关闭。
+- 草稿：在 front matter 中加入 `draft: true`，该文章不会生成。
+- RSS/Atom：生成 `rss.xml` 和 `atom.xml`，需要在 `site.json` 填写 `site_url`。
+- Sitemap：生成 `sitemap.xml`，同样依赖 `site_url`。
+- 404 页面：自动生成 `404.html`。
+- `.nojekyll`：输出根目录会写入 `.nojekyll`，避免 GitHub Pages 误处理。

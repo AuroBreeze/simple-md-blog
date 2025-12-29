@@ -18,6 +18,7 @@ except ImportError:
 
 DATE_FMT = "%Y-%m-%d"
 DATETIME_FMT = "%Y-%m-%d %H:%M"
+FEED_LIMIT = 20
 IMG_SRC_RE = re.compile(r'<img([^>]*?)src="([^"]+)"', re.IGNORECASE)
 TAG_RE = re.compile(r"<[^>]+>")
 TIME_IN_DATE_RE = re.compile(r"[T ]\d{1,2}:\d{2}")
@@ -41,6 +42,18 @@ def parse_list(value: str) -> list[str]:
     else:
         items = [item.strip() for item in value.split(",")]
     return [item for item in items if item]
+
+
+def parse_bool(value: object) -> bool:
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value.strip().lower() in {"1", "true", "yes", "y", "on"}
+    return False
 
 
 def parse_front_matter(text: str) -> tuple[dict, str]:
@@ -173,6 +186,42 @@ def normalize_list_spacing(text: str) -> str:
                     out.append("")
         out.append(line)
     return "\n".join(out)
+
+
+def join_url(base: str, path: str) -> str:
+    base = base.rstrip("/")
+    path = path.lstrip("/")
+    if not path:
+        return base
+    return f"{base}/{path}"
+
+
+def rfc822_date(value: dt.datetime) -> str:
+    value = value.replace(tzinfo=dt.timezone.utc)
+    return value.strftime("%a, %d %b %Y %H:%M:%S %z")
+
+
+def iso_date(value: dt.datetime) -> str:
+    value = value.replace(tzinfo=dt.timezone.utc)
+    return value.strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def write_nojekyll(output_dir: Path) -> None:
+    write_text(output_dir / ".nojekyll", "")
+
+
+def clean_output_dir(output_dir: Path, project_root: Path) -> None:
+    if not output_dir.exists():
+        return
+    output_resolved = output_dir.resolve()
+    root_resolved = project_root.resolve()
+    if output_resolved == root_resolved:
+        print("Refusing to clean project root.", file=sys.stderr)
+        sys.exit(1)
+    if not output_resolved.is_relative_to(root_resolved):
+        print("Refusing to clean output directory outside project root.", file=sys.stderr)
+        sys.exit(1)
+    shutil.rmtree(output_dir)
 
 
 def render_template(template: str, **context: str) -> str:
@@ -413,11 +462,163 @@ def build_search_index(output_dir: Path, posts: list[dict]) -> None:
     write_text(output_dir / "search-index.json", json.dumps(index, indent=2, ensure_ascii=True))
 
 
+def build_rss(output_dir: Path, posts: list[dict], site_url: str, args: argparse.Namespace) -> None:
+    if not site_url:
+        return
+    site_url = site_url.rstrip("/")
+    items = []
+    for post in posts[:FEED_LIMIT]:
+        link = join_url(site_url, f"posts/{post['slug']}.html")
+        items.append(
+            "\n".join(
+                [
+                    "<item>",
+                    f"<title>{html.escape(post['title'])}</title>",
+                    f"<link>{link}</link>",
+                    f"<guid>{link}</guid>",
+                    f"<pubDate>{rfc822_date(post['date_dt'])}</pubDate>",
+                    f"<description>{html.escape(post['summary'])}</description>",
+                    "</item>",
+                ]
+            )
+        )
+    last_build = rfc822_date(posts[0]["date_dt"]) if posts else rfc822_date(dt.datetime.utcnow())
+    rss = "\n".join(
+        [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<rss version="2.0">',
+            "<channel>",
+            f"<title>{html.escape(args.site_name)}</title>",
+            f"<link>{site_url}/</link>",
+            f"<description>{html.escape(args.site_description)}</description>",
+            f"<lastBuildDate>{last_build}</lastBuildDate>",
+            "\n".join(items),
+            "</channel>",
+            "</rss>",
+        ]
+    )
+    write_text(output_dir / "rss.xml", rss)
+
+
+def build_atom(output_dir: Path, posts: list[dict], site_url: str, args: argparse.Namespace) -> None:
+    if not site_url:
+        return
+    site_url = site_url.rstrip("/")
+    updated = iso_date(posts[0]["date_dt"]) if posts else iso_date(dt.datetime.utcnow())
+    entries = []
+    for post in posts[:FEED_LIMIT]:
+        link = join_url(site_url, f"posts/{post['slug']}.html")
+        entries.append(
+            "\n".join(
+                [
+                    "<entry>",
+                    f"<title>{html.escape(post['title'])}</title>",
+                    f"<link href=\"{link}\" />",
+                    f"<id>{link}</id>",
+                    f"<updated>{iso_date(post['date_dt'])}</updated>",
+                    f"<summary>{html.escape(post['summary'])}</summary>",
+                    "</entry>",
+                ]
+            )
+        )
+    atom = "\n".join(
+        [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<feed xmlns="http://www.w3.org/2005/Atom">',
+            f"<title>{html.escape(args.site_name)}</title>",
+            f"<id>{site_url}/</id>",
+            f"<updated>{updated}</updated>",
+            f'<link href="{site_url}/atom.xml" rel="self" />',
+            f'<link href="{site_url}/" />',
+            "\n".join(entries),
+            "</feed>",
+        ]
+    )
+    write_text(output_dir / "atom.xml", atom)
+
+
+def build_sitemap(output_dir: Path, posts: list[dict], category_map: dict, site_url: str) -> None:
+    if not site_url:
+        return
+    site_url = site_url.rstrip("/")
+    urls = [
+        (site_url + "/", None),
+        (join_url(site_url, "search.html"), None),
+        (join_url(site_url, "rss.xml"), None),
+        (join_url(site_url, "atom.xml"), None),
+        (join_url(site_url, "404.html"), None),
+    ]
+    for post in posts:
+        urls.append((join_url(site_url, f"posts/{post['slug']}.html"), post["date_dt"]))
+    for category in category_map.keys():
+        urls.append((join_url(site_url, f"categories/{slugify(category)}.html"), None))
+    items = []
+    for url, lastmod in urls:
+        if lastmod:
+            items.append(
+                "\n".join(
+                    [
+                        "<url>",
+                        f"<loc>{url}</loc>",
+                        f"<lastmod>{lastmod.date().isoformat()}</lastmod>",
+                        "</url>",
+                    ]
+                )
+            )
+        else:
+            items.append(
+                "\n".join(
+                    [
+                        "<url>",
+                        f"<loc>{url}</loc>",
+                        "</url>",
+                    ]
+                )
+            )
+    sitemap = "\n".join(
+        [
+            '<?xml version="1.0" encoding="UTF-8"?>',
+            '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+            "\n".join(items),
+            "</urlset>",
+        ]
+    )
+    write_text(output_dir / "sitemap.xml", sitemap)
+
+
+def build_404(base_template: str, output_dir: Path, category_map: dict, args: argparse.Namespace) -> None:
+    root = "."
+    sidebar = build_sidebar(category_map, root, args.site_description)
+    content = (
+        '<div class="section-head">'
+        "<h2>404</h2>"
+        "<p>Page not found. Try heading back to the homepage.</p>"
+        "</div>"
+        '<div class="post-card">'
+        '<p class="post-summary">The page you requested does not exist.</p>'
+        f'<a class="post-more" href="{root}/index.html">Back to home</a>'
+        "</div>"
+    )
+    html_doc = render_template(
+        base_template,
+        title=html.escape(f"404 | {args.site_name}"),
+        root=root,
+        content=content,
+        sidebar=sidebar,
+        site_name=html.escape(args.site_name),
+        site_description=html.escape(args.site_description),
+        year=str(dt.datetime.now().year),
+        extra_head="",
+    )
+    write_text(output_dir / "404.html", html_doc)
+
+
 def build_site(args: argparse.Namespace) -> None:
     posts_dir = Path(args.posts)
     static_dir = Path(args.static)
     output_dir = Path(args.output)
     templates_dir = Path("templates")
+    project_root = Path.cwd()
 
     if not posts_dir.exists():
         print(f"Posts directory not found: {posts_dir}", file=sys.stderr)
@@ -425,6 +626,9 @@ def build_site(args: argparse.Namespace) -> None:
     if not templates_dir.exists():
         print(f"Templates directory not found: {templates_dir}", file=sys.stderr)
         sys.exit(1)
+
+    if args.clean:
+        clean_output_dir(output_dir, project_root)
 
     base_template = read_template(templates_dir / "base.html")
 
@@ -438,6 +642,11 @@ def build_site(args: argparse.Namespace) -> None:
     custom_domain = (args.custom_domain or "").strip()
     if custom_domain:
         write_text(output_dir / "CNAME", f"{custom_domain}\n")
+    write_nojekyll(output_dir)
+
+    site_url = (args.site_url or "").strip()
+    if not site_url and custom_domain:
+        site_url = f"https://{custom_domain}"
 
     posts = []
     md = markdown.Markdown(
@@ -447,6 +656,8 @@ def build_site(args: argparse.Namespace) -> None:
     for md_file in sorted(posts_dir.glob("*.md")):
         raw_text = md_file.read_text(encoding="utf-8")
         meta, body = parse_front_matter(raw_text)
+        if parse_bool(meta.get("draft")):
+            continue
         title, body = extract_title(meta, body)
         body = normalize_list_spacing(body)
         date_dt = parse_date(meta, md_file)
@@ -487,6 +698,10 @@ def build_site(args: argparse.Namespace) -> None:
     build_categories(base_template, output_dir, category_map, args)
     build_search(base_template, output_dir, posts, category_map, args)
     build_search_index(output_dir, posts)
+    build_rss(output_dir, posts, site_url, args)
+    build_atom(output_dir, posts, site_url, args)
+    build_sitemap(output_dir, posts, category_map, site_url)
+    build_404(base_template, output_dir, category_map, args)
 
 
 def main() -> None:
@@ -495,25 +710,44 @@ def main() -> None:
     pre_args, _ = pre_parser.parse_known_args()
     config = load_config(Path(pre_args.config))
 
-    def cfg(key: str, default: str) -> str:
+    def cfg_value(key: str, default: object) -> object:
         value = config.get(key)
         return default if value is None else value
 
+    def cfg_str(key: str, default: str) -> str:
+        value = cfg_value(key, default)
+        return default if value is None else str(value)
+
+    def cfg_bool(key: str, default: bool) -> bool:
+        value = cfg_value(key, default)
+        return parse_bool(value) if value is not None else default
+
     parser = argparse.ArgumentParser(description="Simple Markdown blog generator.")
     parser.add_argument("--config", default=pre_args.config, help="Path to site config JSON.")
-    parser.add_argument("--posts", default=cfg("posts", "posts"), help="Directory containing Markdown posts.")
-    parser.add_argument("--static", default=cfg("static", "static"), help="Directory containing static assets.")
-    parser.add_argument("--output", default=cfg("output", "dist"), help="Output directory for the site.")
-    parser.add_argument("--site-name", default=cfg("site_name", "Simple MD Blog"), help="Site title.")
+    parser.add_argument("--posts", default=cfg_str("posts", "posts"), help="Directory containing Markdown posts.")
+    parser.add_argument("--static", default=cfg_str("static", "static"), help="Directory containing static assets.")
+    parser.add_argument("--output", default=cfg_str("output", "dist"), help="Output directory for the site.")
+    parser.add_argument("--site-name", default=cfg_str("site_name", "Simple MD Blog"), help="Site title.")
     parser.add_argument(
         "--site-description",
-        default=cfg("site_description", "A tiny, fast Markdown blog for GitHub Pages."),
+        default=cfg_str("site_description", "A tiny, fast Markdown blog for GitHub Pages."),
         help="Site description.",
     )
     parser.add_argument(
         "--custom-domain",
-        default=cfg("custom_domain", ""),
+        default=cfg_str("custom_domain", ""),
         help="Custom domain to write into CNAME.",
+    )
+    parser.add_argument(
+        "--site-url",
+        default=cfg_str("site_url", ""),
+        help="Public site URL used for RSS and sitemap.",
+    )
+    parser.add_argument(
+        "--clean",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("clean", True),
+        help="Clean output directory before build.",
     )
     args = parser.parse_args()
     build_site(args)

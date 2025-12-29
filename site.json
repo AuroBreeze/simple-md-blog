@@ -1,5 +1,7 @@
 {
   "site_name": "AuroBreeze Blog",
   "site_description": "A tiny, fast Markdown blog for GitHub Pages.",
-  "custom_domain": "blog.aurobreeze.top"
+  "custom_domain": "blog.aurobreeze.top",
+  "site_url": "https://blog.aurobreeze.top",
+  "clean": true
 }
