@@ -154,13 +154,17 @@ def build_post_cards(posts: list[dict], root: str) -> str:
         title = html.escape(post["title"])
         summary = html.escape(post["summary"])
         url = f"{root}/posts/{post['slug']}.html"
+        word_count = post.get("words", 0)
         category_links = " ".join(
             f'<a class="chip" href="{root}/categories/{slugify(cat)}.html">{html.escape(cat)}</a>'
             for cat in post["categories"]
         )
         cards.append(
             f'<article class="post-card" style="animation-delay: {delay:.2f}s">'
-            f'<div class="post-meta"><span class="post-date">{post["date"]}</span>'
+            '<div class="post-meta"><div class="post-meta-left">'
+            f'<span class="post-date">{post["date"]}</span>'
+            f'<span class="post-words">{word_count} words</span>'
+            "</div>"
             f'<div class="post-tags">{category_links}</div></div>'
             f'<h2 class="post-title"><a href="{url}">{title}</a></h2>'
             f'<p class="post-summary">{summary}</p>'
@@ -275,13 +279,17 @@ def build_posts(
             widget_html,
         )
         title = html.escape(post["title"])
+        word_count = post.get("words", 0)
         category_links = " ".join(
             f'<a class="chip" href="{root}/categories/{slugify(cat)}.html">{html.escape(cat)}</a>'
             for cat in post["categories"]
         )
         content = (
             '<article class="post">'
-            f'<div class="post-meta"><span class="post-date">{post["date"]}</span>'
+            '<div class="post-meta"><div class="post-meta-left">'
+            f'<span class="post-date">{post["date"]}</span>'
+            f'<span class="post-words">{word_count} words</span>'
+            "</div>"
             f'<div class="post-tags">{category_links}</div></div>'
             f'<h1 class="post-title">{title}</h1>'
             f'<div class="post-body">{post["content"]}</div>'
@@ -501,9 +509,11 @@ def build_archive(
             f'<li><span class="archive-year">{year}</span>'
             f'<span class="archive-count">{count}</span></li>'
         )
+    total_words = sum(post.get("words", 0) for post in posts)
     stats_html = (
         '<div class="archive-stats">'
         f'<div class="archive-total">Total {len(posts)} posts</div>'
+        f'<div class="archive-total">Total {total_words} words</div>'
         f'<ul class="archive-year-list">{"".join(year_rows)}</ul>'
         "</div>"
         if posts

@@ -281,6 +281,21 @@ a:hover {
   margin-bottom: 12px;
 }
 
+.post-meta-left {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.post-words {
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: #efe2d3;
+  font-size: 0.75rem;
+  color: var(--ink);
+}
+
 .post-title {
   font-family: "Fraunces", serif;
   margin: 0 0 8px;

@@ -3,12 +3,14 @@ from __future__ import annotations
 import argparse
 import datetime as dt
 import sys
+import time
 from pathlib import Path
 
 import markdown
 
 from .config import load_config, resolve_about_html, resolve_analytics, resolve_widget_html
 from .content import (
+    count_words,
     extract_title,
     get_categories,
     normalize_list_spacing,
@@ -107,6 +109,7 @@ def build_site(args: argparse.Namespace) -> None:
         if not summary:
             summary = strip_tags(html_content).strip().replace("\n", " ")
             summary = summary[:200] + ("..." if len(summary) > 200 else "")
+        word_count = count_words(strip_tags(html_content))
         posts.append(
             {
                 "title": title,
@@ -118,6 +121,7 @@ def build_site(args: argparse.Namespace) -> None:
                 "content": html_content,
                 "toc": toc_html,
                 "archives": archive_labels,
+                "words": word_count,
             }
         )
 
@@ -281,5 +285,8 @@ def main() -> None:
         help="Path to file used for the sidebar About panel.",
     )
     args = parser.parse_args()
+    start = time.perf_counter()
     build_site(args)
+    elapsed = time.perf_counter() - start
+    print(f"Build completed in {elapsed:.2f}s.")
     print(f"Site generated in: {args.output}")

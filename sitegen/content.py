@@ -1,12 +1,15 @@
 from __future__ import annotations
 
 import datetime as dt
+import html as html_lib
 import re
 from pathlib import Path
 
 LIST_MARKER_RE = re.compile(r"^(?P<indent>[ \t]*)(?:[-+*]|\d+[.)])\s+")
 FENCE_RE = re.compile(r"^(?P<indent>[ \t]*)(`{3,}|~{3,})")
 DOUBLE_QUOTE_RE = re.compile(r"^(?P<indent>[ \t]*)>>(?!>)(?P<rest>.*)$")
+CJK_RE = re.compile(r"[\u3040-\u30ff\u3400-\u4dbf\u4e00-\u9fff\uac00-\ud7af]")
+WORD_RE = re.compile(r"[A-Za-z0-9]+(?:'[A-Za-z0-9]+)?")
 
 
 def slugify(text: str) -> str:
@@ -148,3 +151,11 @@ def normalize_list_spacing(text: str) -> str:
                     out.append("")
         out.append(line)
     return "\n".join(out)
+
+
+def count_words(text: str) -> int:
+    text = html_lib.unescape(text)
+    cjk_count = len(CJK_RE.findall(text))
+    text = CJK_RE.sub(" ", text)
+    word_count = len(WORD_RE.findall(text))
+    return cjk_count + word_count
