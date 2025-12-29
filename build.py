@@ -21,6 +21,9 @@ DATETIME_FMT = "%Y-%m-%d %H:%M"
 IMG_SRC_RE = re.compile(r'<img([^>]*?)src="([^"]+)"', re.IGNORECASE)
 TAG_RE = re.compile(r"<[^>]+>")
 TIME_IN_DATE_RE = re.compile(r"[T ]\d{1,2}:\d{2}")
+LIST_MARKER_RE = re.compile(r"^(?P<indent>[ \t]*)(?:[-+*]|\d+[.)])\s+")
+FENCE_RE = re.compile(r"^(?P<indent>[ \t]*)(`{3,}|~{3,})")
+DOUBLE_QUOTE_RE = re.compile(r"^(?P<indent>[ \t]*)>>(?!>)(?P<rest>.*)$")
 
 
 def slugify(text: str) -> str:
@@ -134,6 +137,42 @@ def fix_relative_img_src(html_text: str, root: str) -> str:
 
 def strip_tags(html_text: str) -> str:
     return TAG_RE.sub("", html_text)
+
+
+def normalize_list_spacing(text: str) -> str:
+    lines = text.splitlines()
+    out: list[str] = []
+    in_fence = False
+    fence_marker = ""
+    for line in lines:
+        fence_match = FENCE_RE.match(line)
+        if fence_match:
+            marker = fence_match.group(2)
+            if not in_fence:
+                in_fence = True
+                fence_marker = marker
+            elif marker == fence_marker:
+                in_fence = False
+                fence_marker = ""
+            out.append(line)
+            continue
+        if in_fence:
+            out.append(line)
+            continue
+        quote_match = DOUBLE_QUOTE_RE.match(line)
+        if quote_match:
+            rest = quote_match.group("rest").lstrip()
+            if rest:
+                line = f'{quote_match.group("indent")}> {rest}'
+            else:
+                line = f'{quote_match.group("indent")}>'
+        list_match = LIST_MARKER_RE.match(line)
+        if list_match:
+            if not list_match.group("indent"):
+                if out and out[-1].strip() and not LIST_MARKER_RE.match(out[-1]):
+                    out.append("")
+        out.append(line)
+    return "\n".join(out)
 
 
 def render_template(template: str, **context: str) -> str:
@@ -409,6 +448,7 @@ def build_site(args: argparse.Namespace) -> None:
         raw_text = md_file.read_text(encoding="utf-8")
         meta, body = parse_front_matter(raw_text)
         title, body = extract_title(meta, body)
+        body = normalize_list_spacing(body)
         date_dt = parse_date(meta, md_file)
         date_fmt = DATETIME_FMT if has_explicit_time(meta) else DATE_FMT
         date_str = date_dt.strftime(date_fmt)

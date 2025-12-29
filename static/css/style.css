@@ -256,6 +256,26 @@ a:hover {
   font-family: "Courier New", monospace;
 }
 
+.post-body :not(pre) > code {
+  background: #efe2d3;
+  border: 1px solid var(--border);
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-size: 0.95em;
+}
+
+.post-body blockquote {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border-left: 4px solid var(--secondary);
+  background: #f8efe3;
+  color: var(--ink);
+}
+
+.post-body blockquote p {
+  margin: 0;
+}
+
 .post-footer {
   margin-top: 24px;
 }
