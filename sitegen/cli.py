@@ -127,7 +127,7 @@ def build_site(args: argparse.Namespace) -> None:
         for category in post["categories"]:
             category_map.setdefault(category, []).append(post)
 
-    build_index(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
+    total_pages = build_index(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
     build_posts(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
     build_categories(base_template, output_dir, category_map, args, analytics_html, about_html)
     build_search(base_template, output_dir, posts, category_map, args, analytics_html, about_html)
@@ -139,7 +139,7 @@ def build_site(args: argparse.Namespace) -> None:
     if args.enable_atom:
         build_atom(output_dir, posts, site_url, args, args.feed_limit)
     if args.enable_sitemap:
-        build_sitemap(output_dir, posts, category_map, site_url)
+        build_sitemap(output_dir, posts, category_map, site_url, total_pages)
     if args.enable_404:
         build_404(base_template, output_dir, category_map, args, analytics_html, about_html)
 
@@ -198,6 +198,12 @@ def main() -> None:
         default=cfg_int("feed_limit", FEED_LIMIT),
         type=int,
         help="Maximum number of posts in RSS/Atom feeds.",
+    )
+    parser.add_argument(
+        "--posts-per-page",
+        default=cfg_int("posts_per_page", 8),
+        type=int,
+        help="Number of posts on the home page before pagination.",
     )
     parser.add_argument(
         "--toc-depth",

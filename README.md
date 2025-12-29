@@ -77,6 +77,7 @@ draft: false
   "site_url": "https://blog.aurobreeze.top",
   "clean": true,
   "feed_limit": 20,
+  "posts_per_page": 8,
   "toc_depth": "2-4",
   "enable_rss": true,
   "enable_atom": true,

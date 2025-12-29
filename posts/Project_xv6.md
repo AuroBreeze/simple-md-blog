@@ -1,6 +1,6 @@
 ---
 title: MIT 6.S081: Operating System Engineering
-date: 2025-07-31
+date: 2025-12-12
 time: 09:30
 archive: Project
 categories: [Notes, Project]

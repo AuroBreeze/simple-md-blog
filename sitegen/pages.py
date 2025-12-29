@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import math
 import html
 import json
 from pathlib import Path
@@ -74,31 +75,72 @@ def build_index(
     args: object,
     analytics_html: str,
     about_html: str,
-) -> None:
+) -> int:
+    def page_url(page: int) -> str:
+        if page == 1:
+            return "index.html"
+        return f"page-{page}.html"
+
+    def build_pagination(page: int, total_pages: int) -> str:
+        if total_pages <= 1:
+            return ""
+        items = []
+        prev_url = page_url(page - 1) if page > 1 else ""
+        next_url = page_url(page + 1) if page < total_pages else ""
+        if prev_url:
+            items.append(f'<a class="page-link" href="./{prev_url}">Previous</a>')
+        else:
+            items.append('<span class="page-link is-disabled">Previous</span>')
+        numbers = []
+        for num in range(1, total_pages + 1):
+            if num == page:
+                numbers.append(f'<span class="page-number is-active">{num}</span>')
+            else:
+                numbers.append(f'<a class="page-number" href="./{page_url(num)}">{num}</a>')
+        items.append(f'<div class="page-numbers">{"".join(numbers)}</div>')
+        if next_url:
+            items.append(f'<a class="page-link" href="./{next_url}">Next</a>')
+        else:
+            items.append('<span class="page-link is-disabled">Next</span>')
+        return f'<nav class="pagination">{"".join(items)}</nav>'
+
     root = "."
     sidebar = build_sidebar(category_map, root, about_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
-    content = (
-        '<div class="section-head">'
-        "<h2>Latest posts</h2>"
-        "<p>Fresh notes generated from your Markdown folder.</p>"
-        "</div>"
-        f'<div class="post-grid">{build_post_cards(posts, root)}</div>'
-    )
-    html_doc = render_template(
-        base_template,
-        title=html.escape(f"{args.site_name} | Home"),
-        root=root,
-        content=content,
-        sidebar=sidebar,
-        site_name=site_name,
-        site_description=site_description,
-        year=str(dt.datetime.now().year),
-        extra_head="",
-        analytics=analytics_html,
-    )
-    write_text(output_dir / "index.html", html_doc)
+    per_page = max(1, int(getattr(args, "posts_per_page", 8)))
+    total_pages = max(1, math.ceil(len(posts) / per_page))
+
+    for page in range(1, total_pages + 1):
+        start = (page - 1) * per_page
+        page_posts = posts[start : start + per_page]
+        content = (
+            '<div class="section-head">'
+            "<h2>Latest posts</h2>"
+            "<p>Fresh notes generated from your Markdown folder.</p>"
+            "</div>"
+            f'<div class="post-grid">{build_post_cards(page_posts, root)}</div>'
+            f"{build_pagination(page, total_pages)}"
+        )
+        page_title = f"{args.site_name} | Home"
+        if page > 1:
+            page_title = f"{args.site_name} | Page {page}"
+        html_doc = render_template(
+            base_template,
+            title=html.escape(page_title),
+            root=root,
+            content=content,
+            sidebar=sidebar,
+            site_name=site_name,
+            site_description=site_description,
+            year=str(dt.datetime.now().year),
+            extra_head="",
+            analytics=analytics_html,
+        )
+        filename = "index.html" if page == 1 else page_url(page)
+        write_text(output_dir / filename, html_doc)
+
+    return total_pages
 
 
 def build_posts(
@@ -467,7 +509,9 @@ def build_atom(
     write_text(output_dir / "atom.xml", atom)
 
 
-def build_sitemap(output_dir: Path, posts: list[dict], category_map: dict, site_url: str) -> None:
+def build_sitemap(
+    output_dir: Path, posts: list[dict], category_map: dict, site_url: str, total_pages: int
+) -> None:
     if not site_url:
         return
     site_url = site_url.rstrip("/")
@@ -480,6 +524,9 @@ def build_sitemap(output_dir: Path, posts: list[dict], category_map: dict, site_
         (join_url(site_url, "atom.xml"), None),
         (join_url(site_url, "404.html"), None),
     ]
+    if total_pages > 1:
+        for page in range(2, total_pages + 1):
+            urls.append((join_url(site_url, f"page-{page}.html"), None))
     for post in posts:
         urls.append((join_url(site_url, f"posts/{post['slug']}.html"), post["date_dt"]))
     for category in category_map.keys():
