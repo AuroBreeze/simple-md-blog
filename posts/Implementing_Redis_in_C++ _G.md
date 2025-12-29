@@ -1,3 +1,12 @@
+---
+title: Implementing Redis in C++ : G
+date: 2025-07-31
+time: 09:30
+archive: Implementing Redis in C++
+categories: [Notes, C/C++]
+summary: C/C++ 实现 Redis 思路
+---
+
 # Implementing Redis in C++ : F
 # Redis C++ 实现笔记（G篇）
 

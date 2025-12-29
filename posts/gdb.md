@@ -1,3 +1,12 @@
+---
+title: GDB 调试工具简明指南
+date  : 2025-12-25
+time  : 16:51:18
+archive: Tools
+categories: [Notes, Tools]
+summary: 本文主要讲述我在实现SBI调用链实现CLINT中断定时时遇到的问题，以及如何解决。
+---
+
 # GDB 调试工具简明指南
 
 ## 基本命令

@@ -1,9 +1,10 @@
 ---
+title: CLINT的SBI调用链实现
 date  : 2025-12-25
 time  : 16:51:18
-title: CLINT的SBI调用链实现
-summary: 本文主要讲述我在实现SBI调用链实现CLINT定时时遇到的问题，以及如何解决。
-category: Notes
+archive: FrostVista
+categories: [OS, Kernel, driver, C/C++]
+summary: 本文主要讲述我在实现SBI调用链实现CLINT中断定时时遇到的问题，以及如何解决。
 ---
 
 # CLINT的SBI调用链实现
