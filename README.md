@@ -84,7 +84,7 @@ site_url = "https://blog.aurobreeze.top"
 clean = false
 incremental = true
 lock_file = "build.lock.json"
-build_workers = 4
+build_workers = 8
 
 posts_per_page = 8
 toc_depth = "2-4"
@@ -102,7 +102,13 @@ widget_file = "templates/widget.html"
 show_updated = true
 stale_days = 365
 stale_notice = "This post may be outdated."
+
+[category_weights]
+# 首页分类权重（仅影响首页排序，值越大越靠前，负数会被推后）
+devlop = -10
 ```
+
+说明：多分类文章按“最低权重”计算排序。
 
 ## 常用命令
 

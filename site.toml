@@ -67,3 +67,10 @@ show_updated = true
 stale_days = 365
 # 提示文案（英文）
 stale_notice = "This post may be outdated."
+
+# 首页分类权重（仅影响首页排序，值越大越靠前，负数会被推后）
+[category_weights]
+# 这里写你的分类名
+devlog = -10
+
+# 多分类文章按最低权重计算

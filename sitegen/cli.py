@@ -45,6 +45,43 @@ FEED_LIMIT = 20
 LOCK_VERSION = 1
 
 
+def normalize_category_weights(value: object) -> dict[str, int]:
+    if not isinstance(value, dict):
+        return {}
+    result: dict[str, int] = {}
+    for key, raw in value.items():
+        name = str(key).strip()
+        if not name:
+            continue
+        try:
+            weight = int(raw)
+        except (TypeError, ValueError):
+            try:
+                weight = int(float(str(raw)))
+            except (TypeError, ValueError):
+                continue
+        result[name.lower()] = weight
+    return result
+
+
+def category_weight(categories: list[str], weights: dict[str, int]) -> int:
+    if not categories or not weights:
+        return 0
+    weight = 0
+    initialized = False
+    for category in categories:
+        key = str(category).strip().lower()
+        if not key:
+            continue
+        value = weights.get(key, 0)
+        if not initialized:
+            weight = value
+            initialized = True
+        else:
+            weight = min(weight, value)
+    return weight if initialized else 0
+
+
 def build_site(args: argparse.Namespace) -> bool:
     posts_dir = Path(args.posts)
     static_dir = Path(args.static)
@@ -65,6 +102,7 @@ def build_site(args: argparse.Namespace) -> bool:
     if build_workers <= 0:
         build_workers = os.cpu_count() or 1
     build_workers = max(1, min(build_workers, 32))
+    category_weights = normalize_category_weights(getattr(args, "category_weights", {}))
 
     if not posts_dir.exists():
         print(f"Posts directory not found: {posts_dir}", file=sys.stderr)
@@ -318,6 +356,7 @@ def build_site(args: argparse.Namespace) -> bool:
                     "toc": info["toc"],
                     "archives": info["archives"],
                     "words": info["words"],
+                    "weight": category_weight(info["categories"], category_weights),
                     "source": rel,
                 }
             )
@@ -357,8 +396,13 @@ def build_site(args: argparse.Namespace) -> bool:
         archive_hash = hash_text("|".join(archive_parts))
 
     if aggregate_needed:
+        index_posts = sorted(
+            posts,
+            key=lambda post: (post.get("weight", 0), post["date_dt"]),
+            reverse=True,
+        )
         total_pages = build_index(
-            base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html
+            base_template, output_dir, index_posts, category_map, args, analytics_html, about_html, widget_html
         )
         rebuild_all_posts = (
             full_rebuild
@@ -470,6 +514,10 @@ def main() -> None:
         value = cfg_value(key, default)
         return parse_int(value, default)
 
+    def cfg_dict(key: str, default: dict) -> dict:
+        value = config.get(key)
+        return value if isinstance(value, dict) else default
+
     parser = argparse.ArgumentParser(description="Simple Markdown blog generator.")
     parser.add_argument("--config", default=pre_args.config, help="Path to site config file (TOML/YAML/JSON).")
     parser.add_argument("--posts", default=cfg_str("posts", "posts"), help="Directory containing Markdown posts.")
@@ -514,6 +562,11 @@ def main() -> None:
         default=cfg_int("build_workers", 0),
         type=int,
         help="Number of worker threads for parsing/rendering (0 = auto).",
+    )
+    parser.add_argument(
+        "--category-weights",
+        default=cfg_dict("category_weights", {}),
+        help="Category weight mapping from config file.",
     )
     parser.add_argument(
         "--toc-depth",
