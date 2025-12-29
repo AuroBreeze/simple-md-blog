@@ -260,6 +260,7 @@ def build_posts(
     analytics_html: str,
     about_html: str,
     widget_html: str,
+    only_slugs=None,
 ) -> None:
     root = ".."
     site_name = html.escape(args.site_name)
@@ -269,6 +270,8 @@ def build_posts(
         for label in post.get("archives", []):
             archive_map.setdefault(label, []).append(post)
     for post in posts:
+        if only_slugs is not None and post["slug"] not in only_slugs:
+            continue
         sidebar = build_post_sidebar(
             category_map,
             root,
