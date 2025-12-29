@@ -151,6 +151,16 @@ def copy_static(static_dir: Path, output_dir: Path) -> None:
             shutil.copy2(item, dest)
 
 
+def load_config(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        print(f"Invalid JSON in config file {path}: {exc}", file=sys.stderr)
+        sys.exit(1)
+
+
 def build_sidebar(category_map: dict, root: str, site_description: str) -> str:
     items = []
     for name, posts in sorted(category_map.items(), key=lambda x: (-len(x[1]), x[0].lower())):
@@ -358,6 +368,10 @@ def build_site(args: argparse.Namespace) -> None:
     if static_dir.exists():
         copy_static(static_dir, output_dir)
 
+    custom_domain = (args.custom_domain or "").strip()
+    if custom_domain:
+        write_text(output_dir / "CNAME", f"{custom_domain}\n")
+
     posts = []
     md = markdown.Markdown(extensions=["fenced_code", "tables"])
     for md_file in sorted(posts_dir.glob("*.md")):
@@ -402,15 +416,30 @@ def build_site(args: argparse.Namespace) -> None:
 
 
 def main() -> None:
+    pre_parser = argparse.ArgumentParser(add_help=False)
+    pre_parser.add_argument("--config", default="site.json", help="Path to site config JSON.")
+    pre_args, _ = pre_parser.parse_known_args()
+    config = load_config(Path(pre_args.config))
+
+    def cfg(key: str, default: str) -> str:
+        value = config.get(key)
+        return default if value is None else value
+
     parser = argparse.ArgumentParser(description="Simple Markdown blog generator.")
-    parser.add_argument("--posts", default="posts", help="Directory containing Markdown posts.")
-    parser.add_argument("--static", default="static", help="Directory containing static assets.")
-    parser.add_argument("--output", default="dist", help="Output directory for the site.")
-    parser.add_argument("--site-name", default="Simple MD Blog", help="Site title.")
+    parser.add_argument("--config", default=pre_args.config, help="Path to site config JSON.")
+    parser.add_argument("--posts", default=cfg("posts", "posts"), help="Directory containing Markdown posts.")
+    parser.add_argument("--static", default=cfg("static", "static"), help="Directory containing static assets.")
+    parser.add_argument("--output", default=cfg("output", "dist"), help="Output directory for the site.")
+    parser.add_argument("--site-name", default=cfg("site_name", "Simple MD Blog"), help="Site title.")
     parser.add_argument(
         "--site-description",
-        default="A tiny, fast Markdown blog for GitHub Pages.",
+        default=cfg("site_description", "A tiny, fast Markdown blog for GitHub Pages."),
         help="Site description.",
+    )
+    parser.add_argument(
+        "--custom-domain",
+        default=cfg("custom_domain", ""),
+        help="Custom domain to write into CNAME.",
     )
     args = parser.parse_args()
     build_site(args)

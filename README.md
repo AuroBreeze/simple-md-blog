@@ -59,6 +59,20 @@ summary: 布局与功能的快速预览。
 2. 在 GitHub Pages 设置中将 Source 选择为 `GitHub Actions`。
 3. 推送后等待 Actions 运行完成即可访问。
 
+## 站点配置文件
+
+默认会读取 `site.json`，用于统一配置站点信息和自定义域名。CLI 参数会覆盖配置文件。
+
+```json
+{
+  "site_name": "Simple MD Blog",
+  "site_description": "A tiny, fast Markdown blog for GitHub Pages.",
+  "custom_domain": "blog.aurobreeze.top"
+}
+```
+
+构建时会在输出目录自动生成 `CNAME`，用于 GitHub Pages 自定义域名。
+
 ## GitHub Pages
 
 如果你想用 `docs/` 作为 Pages 的发布目录：
