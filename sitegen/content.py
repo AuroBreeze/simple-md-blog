@@ -48,7 +48,7 @@ def parse_front_matter(text: str) -> tuple[dict, str]:
         key, value = line.split(":", 1)
         key = key.strip().lower()
         value = value.strip()
-        if key in {"categories", "tags"}:
+        if key in {"categories", "tags", "archive"}:
             meta[key] = parse_list(value)
         else:
             meta[key] = value

@@ -12,6 +12,7 @@ from .content import (
     extract_title,
     get_categories,
     normalize_list_spacing,
+    parse_list,
     parse_date,
     parse_front_matter,
     slugify,
@@ -92,7 +93,11 @@ def build_site(args: argparse.Namespace) -> None:
         date_str = date_dt.strftime(date_fmt)
         categories = get_categories(meta)
         slug = slugify(meta.get("slug", "")) if meta.get("slug") else slugify(md_file.stem)
-        archive_label = (meta.get("archive") or "").strip()
+        archive_value = meta.get("archive") or []
+        if isinstance(archive_value, list):
+            archive_labels = [str(item).strip() for item in archive_value if str(item).strip()]
+        else:
+            archive_labels = parse_list(str(archive_value))
         html_content = md.convert(body)
         toc_html = md.toc
         md.reset()
@@ -111,7 +116,7 @@ def build_site(args: argparse.Namespace) -> None:
                 "summary": summary,
                 "content": html_content,
                 "toc": toc_html,
-                "archive": archive_label,
+                "archives": archive_labels,
             }
         )
 

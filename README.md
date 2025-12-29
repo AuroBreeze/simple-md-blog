@@ -54,6 +54,7 @@ draft: false
 - 未填写 `time` 会使用当前时间
 - `draft: true` 会跳过生成
 - `archive` 可用于归档分组，相同字段会归到一起
+- `archive` 支持多个值：`archive: 课程笔记, OS` 或 `archive: [课程笔记, OS]`
 - 若无 `title`，会使用正文第一行 H1
 
 ## 图片

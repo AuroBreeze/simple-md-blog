@@ -320,6 +320,43 @@ a:hover {
   color: var(--muted);
 }
 
+.archive-controls {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.archive-toggle {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.archive-toggle.is-active {
+  background: var(--primary);
+  color: #fff;
+  border-color: transparent;
+}
+
+.archive-views.is-js .archive-view {
+  display: none;
+}
+
+.archive-views.is-js .archive-view.is-active {
+  display: block;
+}
+
+.archive-empty {
+  color: var(--muted);
+  margin: 0 0 12px;
+}
+
 .archive-total {
   font-weight: 600;
   color: var(--ink);

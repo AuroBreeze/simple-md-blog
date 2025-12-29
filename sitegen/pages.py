@@ -295,12 +295,11 @@ def build_archive(
     year_counts: dict[int, int] = {}
     for post in posts:
         year_counts[post["date_dt"].year] = year_counts.get(post["date_dt"].year, 0) + 1
-        label = post.get("archive") or ""
-        if label:
+        labels = post.get("archives") or []
+        for label in labels:
             archive_groups.setdefault(label, []).append(post)
-        else:
-            key = post["date_dt"].strftime("%Y-%m")
-            date_groups.setdefault(key, []).append(post)
+        key = post["date_dt"].strftime("%Y-%m")
+        date_groups.setdefault(key, []).append(post)
 
     def render_group(title: str, items: list[dict]) -> str:
         rows = []
@@ -316,17 +315,22 @@ def build_archive(
             f'<ul class="archive-list">{"".join(rows)}</ul></section>'
         )
 
-    group_sections: list[str] = []
+    archive_sections: list[str] = []
     for label, items in sorted(
         archive_groups.items(),
         key=lambda x: max((p["date_dt"] for p in x[1]), default=dt.datetime.min),
         reverse=True,
     ):
         items.sort(key=lambda p: p["date_dt"], reverse=True)
-        group_sections.append(render_group(label, items))
+        archive_sections.append(render_group(label, items))
+
+    if not archive_sections:
+        archive_sections.append('<p class="archive-empty">No archive groups yet.</p>')
+
+    time_sections: list[str] = []
     for key, items in sorted(date_groups.items(), key=lambda x: x[0], reverse=True):
         items.sort(key=lambda p: p["date_dt"], reverse=True)
-        group_sections.append(render_group(key, items))
+        time_sections.append(render_group(key, items))
 
     year_rows = []
     for year, count in sorted(year_counts.items(), key=lambda x: x[0], reverse=True):
@@ -343,13 +347,31 @@ def build_archive(
         else ""
     )
 
+    controls = (
+        '<div class="archive-controls">'
+        '<button class="archive-toggle is-active" type="button" data-view="archive">'
+        "By archive</button>"
+        '<button class="archive-toggle" type="button" data-view="time">By date</button>'
+        "</div>"
+    )
+    views = (
+        '<div class="archive-views">'
+        f'<section class="archive-view archive-view--archive is-active" data-view="archive">'
+        f'{"".join(archive_sections)}'
+        "</section>"
+        f'<section class="archive-view archive-view--time" data-view="time">'
+        f'{"".join(time_sections)}'
+        "</section>"
+        "</div>"
+    )
     content = (
         '<div class="section-head">'
         "<h2>Archive</h2>"
         "<p>All posts by date.</p>"
         "</div>"
         f"{stats_html}"
-        f'{"".join(group_sections)}'
+        f"{controls}"
+        f"{views}"
     )
     html_doc = render_template(
         base_template,
@@ -360,7 +382,7 @@ def build_archive(
         site_name=html.escape(args.site_name),
         site_description=html.escape(args.site_description),
         year=str(dt.datetime.now().year),
-        extra_head="",
+        extra_head=f'<script src="{root}/js/archive.js" defer></script>',
         analytics=analytics_html,
     )
     write_text(output_dir / "archive.html", html_doc)
