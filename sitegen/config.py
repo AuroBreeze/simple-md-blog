@@ -7,12 +7,55 @@ from pathlib import Path
 
 import markdown
 
+try:
+    import tomllib as toml
+except ImportError:
+    try:
+        import tomli as toml
+    except ImportError:  # pragma: no cover - optional dependency
+        toml = None
+
+try:
+    import yaml
+except ImportError:  # pragma: no cover - optional dependency
+    yaml = None
+
 
 def load_config(path: Path) -> dict:
     if not path.exists():
         return {}
+    suffix = path.suffix.lower()
+    text = path.read_text(encoding="utf-8")
+    if suffix == ".toml":
+        if toml is None:
+            print("TOML config requires tomllib (Python 3.11+) or tomli.", file=sys.stderr)
+            sys.exit(1)
+        try:
+            data = toml.loads(text)
+        except Exception as exc:  # pragma: no cover - depends on parser
+            print(f"Invalid TOML in config file {path}: {exc}", file=sys.stderr)
+            sys.exit(1)
+        if not isinstance(data, dict):
+            print(f"TOML config must be a mapping: {path}", file=sys.stderr)
+            sys.exit(1)
+        return data
+    if suffix in {".yml", ".yaml"}:
+        if yaml is None:
+            print("YAML config requires PyYAML.", file=sys.stderr)
+            sys.exit(1)
+        try:
+            data = yaml.safe_load(text)
+        except Exception as exc:  # pragma: no cover - depends on parser
+            print(f"Invalid YAML in config file {path}: {exc}", file=sys.stderr)
+            sys.exit(1)
+        if data is None:
+            return {}
+        if not isinstance(data, dict):
+            print(f"YAML config must be a mapping: {path}", file=sys.stderr)
+            sys.exit(1)
+        return data
     try:
-        return json.loads(path.read_text(encoding="utf-8"))
+        return json.loads(text)
     except json.JSONDecodeError as exc:
         print(f"Invalid JSON in config file {path}: {exc}", file=sys.stderr)
         sys.exit(1)

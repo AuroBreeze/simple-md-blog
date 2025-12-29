@@ -446,7 +446,11 @@ def build_site(args: argparse.Namespace) -> bool:
 
 def main() -> None:
     pre_parser = argparse.ArgumentParser(add_help=False)
-    pre_parser.add_argument("--config", default="site.json", help="Path to site config JSON.")
+    pre_parser.add_argument(
+        "--config",
+        default="site.toml",
+        help="Path to site config file (TOML/YAML/JSON).",
+    )
     pre_args, _ = pre_parser.parse_known_args()
     config = load_config(Path(pre_args.config))
 
@@ -467,7 +471,7 @@ def main() -> None:
         return parse_int(value, default)
 
     parser = argparse.ArgumentParser(description="Simple Markdown blog generator.")
-    parser.add_argument("--config", default=pre_args.config, help="Path to site config JSON.")
+    parser.add_argument("--config", default=pre_args.config, help="Path to site config file (TOML/YAML/JSON).")
     parser.add_argument("--posts", default=cfg_str("posts", "posts"), help="Directory containing Markdown posts.")
     parser.add_argument("--static", default=cfg_str("static", "static"), help="Directory containing static assets.")
     parser.add_argument("--output", default=cfg_str("output", "dist"), help="Output directory for the site.")
