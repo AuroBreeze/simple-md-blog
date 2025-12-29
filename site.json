@@ -8,6 +8,7 @@
   "lock_file": "build.lock.json",
   "feed_limit": 20,
   "posts_per_page": 8,
+  "build_workers": 4,
   "toc_depth": "2-4",
   "show_updated": true,
   "stale_days": 365,

@@ -2,8 +2,10 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import os
 import sys
 import time
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import markdown
@@ -59,6 +61,10 @@ def build_site(args: argparse.Namespace) -> bool:
 
     incremental = parse_bool(getattr(args, "incremental", True))
     stale_days = max(0, int(getattr(args, "stale_days", 0) or 0))
+    build_workers = int(getattr(args, "build_workers", 0) or 0)
+    if build_workers <= 0:
+        build_workers = os.cpu_count() or 1
+    build_workers = max(1, min(build_workers, 32))
 
     if not posts_dir.exists():
         print(f"Posts directory not found: {posts_dir}", file=sys.stderr)
@@ -199,12 +205,7 @@ def build_site(args: argparse.Namespace) -> bool:
     category_hash = previous_state.get("category_hash", "")
     archive_hash = previous_state.get("archive_hash", "")
     if aggregate_needed or about_changed:
-        used_slugs = set()
-        md = markdown.Markdown(
-            extensions=["fenced_code", "tables", "toc"],
-            extension_configs={"toc": {"toc_depth": args.toc_depth}},
-        )
-        for md_file in post_files:
+        def parse_post_data(md_file: Path) -> dict:
             rel = rel_key(md_file)
             raw_text = md_file.read_text(encoding="utf-8")
             meta, body = parse_front_matter(raw_text)
@@ -218,8 +219,63 @@ def build_site(args: argparse.Namespace) -> bool:
             updated_fmt = DATETIME_FMT if updated_time_used else DATE_FMT
             updated_str = updated_dt.strftime(updated_fmt)
             categories = get_categories(meta)
-            explicit_slug = meta.get("slug")
-            candidate_slug = slugify(str(explicit_slug)) if explicit_slug else slugify(md_file.stem)
+            archive_value = meta.get("archive") or []
+            if isinstance(archive_value, list):
+                archive_labels = [str(item).strip() for item in archive_value if str(item).strip()]
+            else:
+                archive_labels = parse_list(str(archive_value))
+            explicit_slug = (meta.get("slug") or "").strip()
+            candidate_slug = slugify(explicit_slug) if explicit_slug else slugify(md_file.stem)
+            result = {
+                "rel": rel,
+                "draft": is_draft,
+                "title": title,
+                "date": date_str,
+                "date_dt": date_dt,
+                "updated": updated_str,
+                "updated_dt": updated_dt,
+                "categories": categories,
+                "archives": archive_labels,
+                "explicit_slug": explicit_slug,
+                "candidate_slug": candidate_slug,
+            }
+            if is_draft:
+                return result
+            md = markdown.Markdown(
+                extensions=["fenced_code", "tables", "toc"],
+                extension_configs={"toc": {"toc_depth": args.toc_depth}},
+            )
+            html_content = md.convert(body)
+            toc_html = md.toc
+            md.reset()
+            html_content = fix_relative_img_src(html_content, "..")
+            summary = meta.get("summary") or meta.get("description")
+            if not summary:
+                summary = strip_tags(html_content).strip().replace("\n", " ")
+                summary = summary[:200] + ("..." if len(summary) > 200 else "")
+            word_count = count_words(strip_tags(html_content))
+            result.update(
+                {
+                    "summary": summary,
+                    "content": html_content,
+                    "toc": toc_html,
+                    "words": word_count,
+                }
+            )
+            return result
+
+        parse_workers = min(build_workers, len(post_files)) if post_files else 1
+        if parse_workers > 1:
+            with ThreadPoolExecutor(max_workers=parse_workers) as executor:
+                parsed_posts = list(executor.map(parse_post_data, post_files))
+        else:
+            parsed_posts = [parse_post_data(path) for path in post_files]
+
+        used_slugs = set()
+        for info in parsed_posts:
+            rel = info["rel"]
+            explicit_slug = info["explicit_slug"]
+            candidate_slug = info["candidate_slug"]
             previous_slug = ""
             if not explicit_slug:
                 previous_slug = previous_posts.get(rel, {}).get("slug", "")
@@ -244,38 +300,24 @@ def build_site(args: argparse.Namespace) -> bool:
                         counter += 1
             used_slugs.add(slug)
             current_posts[rel]["slug"] = slug
-            current_posts[rel]["draft"] = is_draft
-            current_posts[rel]["updated"] = updated_dt.replace(microsecond=0).isoformat()
-            if is_draft:
+            current_posts[rel]["draft"] = info["draft"]
+            current_posts[rel]["updated"] = info["updated_dt"].replace(microsecond=0).isoformat()
+            if info["draft"]:
                 continue
-            archive_value = meta.get("archive") or []
-            if isinstance(archive_value, list):
-                archive_labels = [str(item).strip() for item in archive_value if str(item).strip()]
-            else:
-                archive_labels = parse_list(str(archive_value))
-            html_content = md.convert(body)
-            toc_html = md.toc
-            md.reset()
-            html_content = fix_relative_img_src(html_content, "..")
-            summary = meta.get("summary") or meta.get("description")
-            if not summary:
-                summary = strip_tags(html_content).strip().replace("\n", " ")
-                summary = summary[:200] + ("..." if len(summary) > 200 else "")
-            word_count = count_words(strip_tags(html_content))
             posts.append(
                 {
-                    "title": title,
-                    "date": date_str,
-                    "date_dt": date_dt,
-                    "updated": updated_str,
-                    "updated_dt": updated_dt,
-                    "categories": categories,
+                    "title": info["title"],
+                    "date": info["date"],
+                    "date_dt": info["date_dt"],
+                    "updated": info["updated"],
+                    "updated_dt": info["updated_dt"],
+                    "categories": info["categories"],
                     "slug": slug,
-                    "summary": summary,
-                    "content": html_content,
-                    "toc": toc_html,
-                    "archives": archive_labels,
-                    "words": word_count,
+                    "summary": info["summary"],
+                    "content": info["content"],
+                    "toc": info["toc"],
+                    "archives": info["archives"],
+                    "words": info["words"],
                     "source": rel,
                 }
             )
@@ -334,6 +376,7 @@ def build_site(args: argparse.Namespace) -> bool:
                 analytics_html,
                 about_html,
                 widget_html,
+                workers=build_workers,
             )
         elif changed_slugs:
             build_posts(
@@ -346,6 +389,7 @@ def build_site(args: argparse.Namespace) -> bool:
                 about_html,
                 widget_html,
                 only_slugs=changed_slugs,
+                workers=build_workers,
             )
         build_categories(base_template, output_dir, category_map, args, analytics_html, about_html, widget_html)
         build_search(base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html)
@@ -460,6 +504,12 @@ def main() -> None:
         default=cfg_int("posts_per_page", 8),
         type=int,
         help="Number of posts on the home page before pagination.",
+    )
+    parser.add_argument(
+        "--build-workers",
+        default=cfg_int("build_workers", 0),
+        type=int,
+        help="Number of worker threads for parsing/rendering (0 = auto).",
     )
     parser.add_argument(
         "--toc-depth",

@@ -4,6 +4,7 @@ import datetime as dt
 import math
 import html
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
 import markdown
@@ -261,6 +262,7 @@ def build_posts(
     about_html: str,
     widget_html: str,
     only_slugs=None,
+    workers: int = 1,
 ) -> None:
     root = ".."
     site_name = html.escape(args.site_name)
@@ -269,9 +271,12 @@ def build_posts(
     for post in posts:
         for label in post.get("archives", []):
             archive_map.setdefault(label, []).append(post)
-    for post in posts:
-        if only_slugs is not None and post["slug"] not in only_slugs:
-            continue
+    if only_slugs is None:
+        posts_to_render = posts
+    else:
+        posts_to_render = [post for post in posts if post["slug"] in only_slugs]
+
+    def render_post(post: dict) -> None:
         sidebar = build_post_sidebar(
             category_map,
             root,
@@ -326,6 +331,15 @@ def build_posts(
             analytics=analytics_html,
         )
         write_text(output_dir / "posts" / f"{post['slug']}.html", html_doc)
+
+    workers = max(1, int(workers or 1))
+    if workers <= 1 or len(posts_to_render) <= 1:
+        for post in posts_to_render:
+            render_post(post)
+    else:
+        max_workers = min(workers, len(posts_to_render))
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            list(executor.map(render_post, posts_to_render))
 
 
 def build_categories(
