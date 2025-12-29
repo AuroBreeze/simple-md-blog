@@ -43,6 +43,7 @@ title: 你好，Markdown
 date: 2025-01-05
 time: 09:30
 category: 随笔
+archive: 课程笔记
 summary: 这是一段摘要。
 draft: false
 ---
@@ -50,7 +51,9 @@ draft: false
 
 说明：
 - `time` 为可选，格式 `HH:MM` 或 `HH:MM:SS`
+- 未填写 `time` 会使用当前时间
 - `draft: true` 会跳过生成
+- `archive` 可用于归档分组，相同字段会归到一起
 - 若无 `title`，会使用正文第一行 H1
 
 ## 图片

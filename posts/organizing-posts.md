@@ -1,5 +1,6 @@
 ﻿---
 date: 2025-01-02
+archive: test
 categories: [Guide, Setup]
 ---
 

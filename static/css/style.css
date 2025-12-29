@@ -311,6 +311,42 @@ a:hover {
   margin-bottom: 24px;
 }
 
+.archive-stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  color: var(--muted);
+}
+
+.archive-total {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.archive-year-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.archive-year {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.archive-count {
+  background: #efe2d3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  margin-left: 6px;
+}
+
 .archive-group h3 {
   font-family: "Fraunces", serif;
   margin: 0 0 10px;

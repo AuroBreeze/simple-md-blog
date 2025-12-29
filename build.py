@@ -21,7 +21,6 @@ DATETIME_FMT = "%Y-%m-%d %H:%M"
 FEED_LIMIT = 20
 IMG_SRC_RE = re.compile(r'<img([^>]*?)src="([^"]+)"', re.IGNORECASE)
 TAG_RE = re.compile(r"<[^>]+>")
-TIME_IN_DATE_RE = re.compile(r"[T ]\d{1,2}:\d{2}")
 LIST_MARKER_RE = re.compile(r"^(?P<indent>[ \t]*)(?:[-+*]|\d+[.)])\s+")
 FENCE_RE = re.compile(r"^(?P<indent>[ \t]*)(`{3,}|~{3,})")
 DOUBLE_QUOTE_RE = re.compile(r"^(?P<indent>[ \t]*)>>(?!>)(?P<rest>.*)$")
@@ -114,29 +113,37 @@ def extract_title(meta: dict, body: str) -> tuple[str, str]:
     return "Untitled", body
 
 
-def parse_date(meta: dict, file_path: Path) -> dt.datetime:
+def parse_date(meta: dict, file_path: Path) -> tuple[dt.datetime, bool]:
+    now = dt.datetime.now()
     date_value = (meta.get("date") or "").strip()
     time_value = (meta.get("time") or "").strip()
     if date_value:
+        if "T" in date_value or " " in date_value:
+            try:
+                return dt.datetime.fromisoformat(date_value), True
+            except ValueError:
+                pass
         if time_value:
             try:
                 date_part = dt.date.fromisoformat(date_value)
                 time_part = dt.time.fromisoformat(time_value)
-                return dt.datetime.combine(date_part, time_part)
+                return dt.datetime.combine(date_part, time_part), True
             except ValueError:
                 pass
         try:
-            return dt.datetime.fromisoformat(date_value)
+            date_part = dt.date.fromisoformat(date_value)
+            return dt.datetime.combine(date_part, now.time()), True
         except ValueError:
             pass
-    return dt.datetime.fromtimestamp(file_path.stat().st_mtime)
-
-
-def has_explicit_time(meta: dict) -> bool:
-    if meta.get("time"):
-        return True
-    date_value = meta.get("date") or ""
-    return bool(TIME_IN_DATE_RE.search(date_value))
+    if time_value:
+        try:
+            time_part = dt.time.fromisoformat(time_value)
+            return dt.datetime.combine(now.date(), time_part), True
+        except ValueError:
+            pass
+    if not time_value:
+        return now, True
+    return dt.datetime.fromtimestamp(file_path.stat().st_mtime), False
 
 
 def get_categories(meta: dict) -> list[str]:
@@ -607,36 +614,66 @@ def build_archive(
 ) -> None:
     root = "."
     sidebar = build_sidebar(category_map, root, about_html)
-    groups: list[str] = []
-    current_key = None
-    current_items: list[str] = []
+    archive_groups: dict[str, list[dict]] = {}
+    date_groups: dict[str, list[dict]] = {}
+    year_counts: dict[int, int] = {}
     for post in posts:
-        key = post["date_dt"].strftime("%Y-%m")
-        if key != current_key:
-            if current_items:
-                groups.append(
-                    f'<section class="archive-group"><h3>{current_key}</h3>'
-                    f'<ul class="archive-list">{"".join(current_items)}</ul></section>'
-                )
-            current_key = key
-            current_items = []
-        title = html.escape(post["title"])
-        url = f'{root}/posts/{post["slug"]}.html'
-        current_items.append(
-            f'<li><span class="archive-date">{post["date"]}</span>'
-            f'<a href="{url}">{title}</a></li>'
+        year_counts[post["date_dt"].year] = year_counts.get(post["date_dt"].year, 0) + 1
+        label = post.get("archive") or ""
+        if label:
+            archive_groups.setdefault(label, []).append(post)
+        else:
+            key = post["date_dt"].strftime("%Y-%m")
+            date_groups.setdefault(key, []).append(post)
+
+    def render_group(title: str, items: list[dict]) -> str:
+        rows = []
+        for item in items:
+            item_title = html.escape(item["title"])
+            url = f'{root}/posts/{item["slug"]}.html'
+            rows.append(
+                f'<li><span class="archive-date">{item["date"]}</span>'
+                f'<a href="{url}">{item_title}</a></li>'
+            )
+        return (
+            f'<section class="archive-group"><h3>{html.escape(title)}</h3>'
+            f'<ul class="archive-list">{"".join(rows)}</ul></section>'
         )
-    if current_items:
-        groups.append(
-            f'<section class="archive-group"><h3>{current_key}</h3>'
-            f'<ul class="archive-list">{"".join(current_items)}</ul></section>'
+
+    group_sections: list[str] = []
+    for label, items in sorted(
+        archive_groups.items(),
+        key=lambda x: max((p["date_dt"] for p in x[1]), default=dt.datetime.min),
+        reverse=True,
+    ):
+        items.sort(key=lambda p: p["date_dt"], reverse=True)
+        group_sections.append(render_group(label, items))
+    for key, items in sorted(date_groups.items(), key=lambda x: x[0], reverse=True):
+        items.sort(key=lambda p: p["date_dt"], reverse=True)
+        group_sections.append(render_group(key, items))
+
+    year_rows = []
+    for year, count in sorted(year_counts.items(), key=lambda x: x[0], reverse=True):
+        year_rows.append(
+            f'<li><span class="archive-year">{year}</span>'
+            f'<span class="archive-count">{count}</span></li>'
         )
+    stats_html = (
+        '<div class="archive-stats">'
+        f'<div class="archive-total">Total {len(posts)} posts</div>'
+        f'<ul class="archive-year-list">{"".join(year_rows)}</ul>'
+        "</div>"
+        if posts
+        else ""
+    )
+
     content = (
         '<div class="section-head">'
         "<h2>Archive</h2>"
         "<p>All posts by date.</p>"
         "</div>"
-        f'{"".join(groups)}'
+        f"{stats_html}"
+        f'{"".join(group_sections)}'
     )
     html_doc = render_template(
         base_template,
@@ -868,11 +905,12 @@ def build_site(args: argparse.Namespace) -> None:
             continue
         title, body = extract_title(meta, body)
         body = normalize_list_spacing(body)
-        date_dt = parse_date(meta, md_file)
-        date_fmt = DATETIME_FMT if has_explicit_time(meta) else DATE_FMT
+        date_dt, time_used = parse_date(meta, md_file)
+        date_fmt = DATETIME_FMT if time_used else DATE_FMT
         date_str = date_dt.strftime(date_fmt)
         categories = get_categories(meta)
         slug = slugify(meta.get("slug", "")) if meta.get("slug") else slugify(md_file.stem)
+        archive_label = (meta.get("archive") or "").strip()
         html_content = md.convert(body)
         toc_html = md.toc
         md.reset()
@@ -891,6 +929,7 @@ def build_site(args: argparse.Namespace) -> None:
                 "summary": summary,
                 "content": html_content,
                 "toc": toc_html,
+                "archive": archive_label,
             }
         )
 
