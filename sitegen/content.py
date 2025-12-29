@@ -107,6 +107,22 @@ def parse_date(meta: dict, file_path: Path) -> tuple[dt.datetime, bool]:
     return dt.datetime.fromtimestamp(file_path.stat().st_mtime), False
 
 
+def parse_updated(meta: dict, file_path: Path) -> tuple[dt.datetime, bool]:
+    value = (meta.get("updated") or meta.get("update") or "").strip()
+    if value:
+        if "T" in value or " " in value:
+            try:
+                return dt.datetime.fromisoformat(value), True
+            except ValueError:
+                pass
+        try:
+            date_part = dt.date.fromisoformat(value)
+            return dt.datetime.combine(date_part, dt.time.min), False
+        except ValueError:
+            pass
+    return dt.datetime.fromtimestamp(file_path.stat().st_mtime), False
+
+
 def get_categories(meta: dict) -> list[str]:
     if meta.get("category"):
         return [meta["category"]]

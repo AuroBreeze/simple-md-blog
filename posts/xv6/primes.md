@@ -4,7 +4,7 @@ date  : 2025-11-30
 time  : 16:51:18
 archive: xv6-2023
 categories: [OS, Kernel, C/C++]
-summary: 根据提示实现primes
+summary: 实现质数筛选器：使用管道和递归进程创建筛选管道，每个进程过滤当前质数的倍数。
 ---
 
 # xv6-2023 - primes Lab
@@ -184,4 +184,3 @@ prime 23
 prime 29
 prime 31
 ```
-

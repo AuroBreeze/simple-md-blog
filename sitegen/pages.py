@@ -10,7 +10,7 @@ import markdown
 
 from .content import extract_title, normalize_list_spacing, parse_front_matter, slugify
 from .render import fix_relative_img_src, render_template, strip_tags, write_text
-from .utils import iso_date, join_url, rfc822_date
+from .utils import iso_date, join_url, parse_bool, rfc822_date
 
 
 def build_category_list(category_map: dict, root: str) -> str:
@@ -283,6 +283,18 @@ def build_posts(
         )
         title = html.escape(post["title"])
         word_count = post.get("words", 0)
+        updated_value = post.get("updated", "")
+        show_updated = parse_bool(getattr(args, "show_updated", True))
+        updated_html = (
+            f'<span class="post-updated">Updated {updated_value}</span>' if show_updated and updated_value else ""
+        )
+        stale_notice = (getattr(args, "stale_notice", "") or "").strip()
+        stale_days = max(0, int(getattr(args, "stale_days", 0) or 0))
+        stale_html = ""
+        if stale_notice and stale_days > 0:
+            updated_dt = post.get("updated_dt")
+            if updated_dt and dt.datetime.now() - updated_dt > dt.timedelta(days=stale_days):
+                stale_html = f'<div class="stale-warning">{html.escape(stale_notice)}</div>'
         category_links = " ".join(
             f'<a class="chip" href="{root}/categories/{slugify(cat)}.html">{html.escape(cat)}</a>'
             for cat in post["categories"]
@@ -291,10 +303,12 @@ def build_posts(
             '<article class="post">'
             '<div class="post-meta"><div class="post-meta-left">'
             f'<span class="post-date">{post["date"]}</span>'
+            f"{updated_html}"
             f'<span class="post-words">{word_count} words</span>'
             "</div>"
             f'<div class="post-tags">{category_links}</div></div>'
             f'<h1 class="post-title">{title}</h1>'
+            f"{stale_html}"
             f'<div class="post-body">{post["content"]}</div>'
             f'<div class="post-footer"><a href="{root}/index.html">Back to home</a></div>'
             "</article>"

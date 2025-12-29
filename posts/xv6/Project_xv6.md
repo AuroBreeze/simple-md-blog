@@ -4,7 +4,7 @@ date: 2025-12-12
 time: 09:30
 archive: [Project, xv6-2023]
 categories: [Notes, Project]
-summary: 关于我结束xv6项目的感言，我的收获，不足以及接下来的方向。
+summary: MIT 6.S081操作系统工程学习总结：xv6项目经验、技术收获、学习反思与未来学习方向规划。
 ---
 
 # Project xv6

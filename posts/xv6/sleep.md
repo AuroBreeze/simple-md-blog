@@ -4,7 +4,7 @@ date  : 2025-11-30
 time  : 16:51:18
 archive: xv6-2023
 categories: [OS, Kernel, C/C++]
-summary: 根据提示实现sleep
+summary: 实现sleep命令：解析命令行参数，调用系统调用暂停进程指定时间，深入分析系统调用机制。
 ---
 
 # xv6-2023 - Sleep Lab
@@ -194,11 +194,3 @@ int main(int argc, char *argv[]){
 ```
 
 整体的代码并不难理解，接收到参数后，使用`atoi()`将参数转换成数字，然后调用`sleep()`函数，等待指定的`tick`就可以了。
-
-
-
-
-
-
-
-

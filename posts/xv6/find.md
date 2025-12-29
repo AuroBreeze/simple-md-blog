@@ -4,7 +4,7 @@ date  : 2025-11-30
 time  : 16:51:18
 archive: xv6-2023
 categories: [OS, Kernel, C/C++]
-summary: 根据提示实现find
+summary: 实现UNIX find命令：递归遍历目录树查找指定文件，解析文件系统结构、目录项和inode操作。
 ---
 
 # xv6-2023 - find Lab
@@ -425,4 +425,3 @@ int main(int argc, char *argv[]){
     return 0;
 }
 ```
-

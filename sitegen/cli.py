@@ -17,6 +17,7 @@ from .content import (
     normalize_list_spacing,
     parse_list,
     parse_date,
+    parse_updated,
     parse_front_matter,
     slugify,
 )
@@ -57,6 +58,7 @@ def build_site(args: argparse.Namespace) -> bool:
         lock_path = config_path.parent / lock_path
 
     incremental = parse_bool(getattr(args, "incremental", True))
+    stale_days = max(0, int(getattr(args, "stale_days", 0) or 0))
 
     if not posts_dir.exists():
         print(f"Posts directory not found: {posts_dir}", file=sys.stderr)
@@ -104,6 +106,38 @@ def build_site(args: argparse.Namespace) -> bool:
     modified_posts = {key for key in current_hashes if key in previous_hashes and current_hashes[key] != previous_hashes[key]}
     posts_changed = bool(added_posts or removed_posts or modified_posts)
 
+    def stale_status_changed(state: dict) -> bool:
+        if stale_days <= 0:
+            return False
+        if not state:
+            return True
+        built_at = state.get("built_at")
+        if not built_at:
+            return True
+        try:
+            built_at_dt = dt.datetime.fromisoformat(built_at)
+        except ValueError:
+            return True
+        now = dt.datetime.now()
+        threshold = dt.timedelta(days=stale_days)
+        for info in state.get("posts", {}).values():
+            if parse_bool(info.get("draft")):
+                continue
+            updated_value = info.get("updated")
+            if not updated_value:
+                continue
+            try:
+                updated_dt = dt.datetime.fromisoformat(updated_value)
+            except ValueError:
+                continue
+            was_stale = (built_at_dt - updated_dt) > threshold
+            is_stale = (now - updated_dt) > threshold
+            if is_stale and not was_stale:
+                return True
+        return False
+
+    stale_changed = stale_status_changed(previous_state) if incremental else False
+
     output_exists = output_dir.exists()
     lock_ok = previous_state.get("version") == LOCK_VERSION if previous_state else False
     no_changes = (
@@ -117,6 +151,7 @@ def build_site(args: argparse.Namespace) -> bool:
         and static_hash == previous_state.get("static_hash")
         and about_page_hash == previous_state.get("about_page_hash")
         and not posts_changed
+        and not stale_changed
     )
     if no_changes:
         print("No changes detected. Build skipped.")
@@ -133,7 +168,7 @@ def build_site(args: argparse.Namespace) -> bool:
         or args.clean
     )
     static_changed = full_rebuild or static_hash != previous_state.get("static_hash")
-    aggregate_needed = full_rebuild or posts_changed
+    aggregate_needed = full_rebuild or posts_changed or stale_changed
     about_changed = full_rebuild or posts_changed or about_page_hash != previous_state.get("about_page_hash")
 
     if full_rebuild and args.clean:
@@ -179,6 +214,9 @@ def build_site(args: argparse.Namespace) -> bool:
             date_dt, time_used = parse_date(meta, md_file)
             date_fmt = DATETIME_FMT if time_used else DATE_FMT
             date_str = date_dt.strftime(date_fmt)
+            updated_dt, updated_time_used = parse_updated(meta, md_file)
+            updated_fmt = DATETIME_FMT if updated_time_used else DATE_FMT
+            updated_str = updated_dt.strftime(updated_fmt)
             categories = get_categories(meta)
             explicit_slug = meta.get("slug")
             candidate_slug = slugify(str(explicit_slug)) if explicit_slug else slugify(md_file.stem)
@@ -207,6 +245,7 @@ def build_site(args: argparse.Namespace) -> bool:
             used_slugs.add(slug)
             current_posts[rel]["slug"] = slug
             current_posts[rel]["draft"] = is_draft
+            current_posts[rel]["updated"] = updated_dt.replace(microsecond=0).isoformat()
             if is_draft:
                 continue
             archive_value = meta.get("archive") or []
@@ -228,6 +267,8 @@ def build_site(args: argparse.Namespace) -> bool:
                     "title": title,
                     "date": date_str,
                     "date_dt": date_dt,
+                    "updated": updated_str,
+                    "updated_dt": updated_dt,
                     "categories": categories,
                     "slug": slug,
                     "summary": summary,
@@ -245,6 +286,7 @@ def build_site(args: argparse.Namespace) -> bool:
                 "hash": current_posts[key]["hash"],
                 "slug": current_posts[key].get("slug", ""),
                 "draft": current_posts[key].get("draft", False),
+                "updated": current_posts[key].get("updated", ""),
             }
             for key in current_posts
         }
@@ -276,7 +318,12 @@ def build_site(args: argparse.Namespace) -> bool:
         total_pages = build_index(
             base_template, output_dir, posts, category_map, args, analytics_html, about_html, widget_html
         )
-        rebuild_all_posts = full_rebuild or category_hash != previous_state.get("category_hash") or archive_hash != previous_state.get("archive_hash")
+        rebuild_all_posts = (
+            full_rebuild
+            or stale_changed
+            or category_hash != previous_state.get("category_hash")
+            or archive_hash != previous_state.get("archive_hash")
+        )
         if rebuild_all_posts:
             build_posts(
                 base_template,
@@ -338,6 +385,7 @@ def build_site(args: argparse.Namespace) -> bool:
 
     build_state = {
         "version": LOCK_VERSION,
+        "built_at": dt.datetime.now().replace(microsecond=0).isoformat(),
         "generator_hash": generator_hash,
         "templates_hash": templates_hash,
         "config_hash": config_hash,
@@ -417,6 +465,23 @@ def main() -> None:
         "--toc-depth",
         default=cfg_str("toc_depth", "2-4"),
         help="Heading depth range for TOC (e.g. 2-4).",
+    )
+    parser.add_argument(
+        "--show-updated",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("show_updated", True),
+        help="Show updated date on post pages.",
+    )
+    parser.add_argument(
+        "--stale-days",
+        default=cfg_int("stale_days", 365),
+        type=int,
+        help="Days before a post is marked as stale (0 to disable).",
+    )
+    parser.add_argument(
+        "--stale-notice",
+        default=cfg_str("stale_notice", "This post may be outdated."),
+        help="Notice text for stale posts.",
     )
     parser.add_argument(
         "--enable-rss",

@@ -296,6 +296,21 @@ a:hover {
   color: var(--ink);
 }
 
+.post-updated {
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.stale-warning {
+  margin: 12px 0 18px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(210, 116, 54, 0.35);
+  background: rgba(210, 116, 54, 0.12);
+  color: #8a4f2a;
+  font-weight: 600;
+}
+
 .post-title {
   font-family: "Fraunces", serif;
   margin: 0 0 8px;

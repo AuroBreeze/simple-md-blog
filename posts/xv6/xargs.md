@@ -4,7 +4,7 @@ date  : 2025-11-30
 time  : 16:51:18
 archive: xv6-2023
 categories: [OS, Kernel, C/C++]
-summary: 根据提示实现xargs
+summary: 实现xargs命令：从标准输入读取参数，为每行参数创建子进程执行命令，深入理解进程创建和参数传递。
 ---
 
 # xv6-2023 - xargs Lab
@@ -37,5 +37,3 @@ Add the program to UPROGS in Makefile.
 Changes to the file system persist across runs of qemu; to get a clean file system run make clean and then make qemu.
 
 ## solve it
-
-

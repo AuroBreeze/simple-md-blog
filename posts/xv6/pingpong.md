@@ -4,7 +4,7 @@ date  : 2025-11-30
 time  : 16:51:18
 archive: xv6-2023
 categories: [OS, Kernel, C/C++]
-summary: 根据提示实现pingpong
+summary: 实现进程间通信的ping-pong程序：使用管道和fork创建父子进程，通过双向管道传递消息。
 ---
 
 # xv6-2023 - pingpong Lab
@@ -240,4 +240,3 @@ main(int argc, char *argv[])
 2: received ping
 1: received pong
 ```
-
