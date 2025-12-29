@@ -13,7 +13,7 @@ from .render import fix_relative_img_src, render_template, strip_tags, write_tex
 from .utils import iso_date, join_url, rfc822_date
 
 
-def build_sidebar(category_map: dict, root: str, about_html: str, toc_html: str = "") -> str:
+def build_category_list(category_map: dict, root: str) -> str:
     items = []
     for name, posts in sorted(category_map.items(), key=lambda x: (-len(x[1]), x[0].lower())):
         slug = slugify(name)
@@ -21,7 +21,11 @@ def build_sidebar(category_map: dict, root: str, about_html: str, toc_html: str 
             f'<li><a href="{root}/categories/{slug}.html">{html.escape(name)}</a>'
             f'<span class="count">{len(posts)}</span></li>'
         )
-    categories_html = "\n".join(items) if items else "<li>No categories yet.</li>"
+    return "\n".join(items) if items else "<li>No categories yet.</li>"
+
+
+def build_sidebar(category_map: dict, root: str, about_html: str, toc_html: str = "") -> str:
+    categories_html = build_category_list(category_map, root)
     panels = [
         '<div class="panel">'
         "<h3>About</h3>"
@@ -41,6 +45,88 @@ def build_sidebar(category_map: dict, root: str, about_html: str, toc_html: str 
         f'<ul class="category-list">{categories_html}</ul>'
         "</div>"
     )
+    return "".join(panels)
+
+
+def build_archive_sidebar(post: dict, archive_map: dict, root: str) -> tuple[str, bool]:
+    labels = post.get("archives") or []
+    if not labels:
+        return "", False
+    sections = []
+    for label in labels:
+        related = [item for item in archive_map.get(label, []) if item["slug"] != post["slug"]]
+        if not related:
+            continue
+        rows = []
+        for item in related:
+            url = f"{root}/posts/{item['slug']}.html"
+            rows.append(
+                f'<li><a href="{url}">{html.escape(item["title"])}</a>'
+                f'<span class="archive-date">{item["date"]}</span></li>'
+            )
+        sections.append(
+            f'<div class="sidebar-archive-group"><h4>{html.escape(label)}</h4>'
+            f'<ul class="sidebar-archive-list">{"".join(rows)}</ul></div>'
+        )
+    if not sections:
+        return '<p class="sidebar-empty">No other posts in this archive yet.</p>', True
+    return "".join(sections), True
+
+
+def build_tabbed_panel(sections: list[tuple[str, str, str]]) -> str:
+    if not sections:
+        return ""
+    active_id = sections[0][0]
+    buttons = []
+    panels = []
+    for tab_id, label, body in sections:
+        active_class = " is-active" if tab_id == active_id else ""
+        buttons.append(
+            f'<button class="sidebar-tab{active_class}" type="button" data-tab="{tab_id}">{label}</button>'
+        )
+        panels.append(
+            f'<section class="sidebar-tabpanel{active_class}" data-tab="{tab_id}">{body}</section>'
+        )
+    return (
+        '<div class="panel sidebar-tabs" data-tabs>'
+        f'<div class="sidebar-tablist">{"".join(buttons)}</div>'
+        f'<div class="sidebar-tabcontent">{"".join(panels)}</div>'
+        "</div>"
+    )
+
+
+def build_post_sidebar(
+    category_map: dict,
+    root: str,
+    about_html: str,
+    toc_html: str,
+    post: dict,
+    archive_map: dict,
+) -> str:
+    categories_html = build_category_list(category_map, root)
+    panels = [
+        '<div class="panel">'
+        "<h3>About</h3>"
+        f"{about_html}"
+        "</div>"
+    ]
+    sections = []
+    if toc_html and "<li" in toc_html:
+        sections.append(("contents", "Contents", toc_html))
+    archive_html, has_archive = build_archive_sidebar(post, archive_map, root)
+    if has_archive:
+        sections.append(("archive", "Archive", archive_html))
+    sections.append(("categories", "Categories", f'<ul class="category-list">{categories_html}</ul>'))
+    if len(sections) == 1:
+        tab_id, label, body = sections[0]
+        panels.append(
+            '<div class="panel">'
+            f"<h3>{label}</h3>"
+            f"{body}"
+            "</div>"
+        )
+    else:
+        panels.append(build_tabbed_panel(sections))
     return "".join(panels)
 
 
@@ -155,8 +241,12 @@ def build_posts(
     root = ".."
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
+    archive_map: dict[str, list[dict]] = {}
     for post in posts:
-        sidebar = build_sidebar(category_map, root, about_html, post.get("toc", ""))
+        for label in post.get("archives", []):
+            archive_map.setdefault(label, []).append(post)
+    for post in posts:
+        sidebar = build_post_sidebar(category_map, root, about_html, post.get("toc", ""), post, archive_map)
         title = html.escape(post["title"])
         category_links = " ".join(
             f'<a class="chip" href="{root}/categories/{slugify(cat)}.html">{html.escape(cat)}</a>'
@@ -180,7 +270,7 @@ def build_posts(
             site_name=site_name,
             site_description=site_description,
             year=str(dt.datetime.now().year),
-            extra_head="",
+            extra_head=f'<script src="{root}/js/sidebar-tabs.js" defer></script>',
             analytics=analytics_html,
         )
         write_text(output_dir / "posts" / f"{post['slug']}.html", html_doc)
