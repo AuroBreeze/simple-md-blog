@@ -17,8 +17,10 @@ except ImportError:
     sys.exit(1)
 
 DATE_FMT = "%Y-%m-%d"
+DATETIME_FMT = "%Y-%m-%d %H:%M"
 IMG_SRC_RE = re.compile(r'<img([^>]*?)src="([^"]+)"', re.IGNORECASE)
 TAG_RE = re.compile(r"<[^>]+>")
+TIME_IN_DATE_RE = re.compile(r"[T ]\d{1,2}:\d{2}")
 
 
 def slugify(text: str) -> str:
@@ -84,12 +86,28 @@ def extract_title(meta: dict, body: str) -> tuple[str, str]:
 
 
 def parse_date(meta: dict, file_path: Path) -> dt.datetime:
-    if meta.get("date"):
+    date_value = (meta.get("date") or "").strip()
+    time_value = (meta.get("time") or "").strip()
+    if date_value:
+        if time_value:
+            try:
+                date_part = dt.date.fromisoformat(date_value)
+                time_part = dt.time.fromisoformat(time_value)
+                return dt.datetime.combine(date_part, time_part)
+            except ValueError:
+                pass
         try:
-            return dt.datetime.fromisoformat(meta["date"])
+            return dt.datetime.fromisoformat(date_value)
         except ValueError:
             pass
     return dt.datetime.fromtimestamp(file_path.stat().st_mtime)
+
+
+def has_explicit_time(meta: dict) -> bool:
+    if meta.get("time"):
+        return True
+    date_value = meta.get("date") or ""
+    return bool(TIME_IN_DATE_RE.search(date_value))
 
 
 def get_categories(meta: dict) -> list[str]:
@@ -161,7 +179,7 @@ def load_config(path: Path) -> dict:
         sys.exit(1)
 
 
-def build_sidebar(category_map: dict, root: str, site_description: str) -> str:
+def build_sidebar(category_map: dict, root: str, site_description: str, toc_html: str = "") -> str:
     items = []
     for name, posts in sorted(category_map.items(), key=lambda x: (-len(x[1]), x[0].lower())):
         slug = slugify(name)
@@ -170,16 +188,26 @@ def build_sidebar(category_map: dict, root: str, site_description: str) -> str:
             f'<span class="count">{len(posts)}</span></li>'
         )
     categories_html = "\n".join(items) if items else "<li>No categories yet.</li>"
-    return (
+    panels = [
         '<div class="panel">'
         "<h3>About</h3>"
         f"<p>{html.escape(site_description)}</p>"
         "</div>"
+    ]
+    if toc_html and "<li" in toc_html:
+        panels.append(
+            '<div class="panel">'
+            "<h3>Contents</h3>"
+            f"{toc_html}"
+            "</div>"
+        )
+    panels.append(
         '<div class="panel">'
         "<h3>Categories</h3>"
         f'<ul class="category-list">{categories_html}</ul>'
         "</div>"
     )
+    return "".join(panels)
 
 
 def build_post_cards(posts: list[dict], root: str) -> str:
@@ -237,10 +265,10 @@ def build_posts(
     base_template: str, output_dir: Path, posts: list[dict], category_map: dict, args: argparse.Namespace
 ) -> None:
     root = ".."
-    sidebar = build_sidebar(category_map, root, args.site_description)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     for post in posts:
+        sidebar = build_sidebar(category_map, root, args.site_description, post.get("toc", ""))
         title = html.escape(post["title"])
         category_links = " ".join(
             f'<a class="chip" href="{root}/categories/{slugify(cat)}.html">{html.escape(cat)}</a>'
@@ -373,16 +401,21 @@ def build_site(args: argparse.Namespace) -> None:
         write_text(output_dir / "CNAME", f"{custom_domain}\n")
 
     posts = []
-    md = markdown.Markdown(extensions=["fenced_code", "tables"])
+    md = markdown.Markdown(
+        extensions=["fenced_code", "tables", "toc"],
+        extension_configs={"toc": {"toc_depth": "2-4"}},
+    )
     for md_file in sorted(posts_dir.glob("*.md")):
         raw_text = md_file.read_text(encoding="utf-8")
         meta, body = parse_front_matter(raw_text)
         title, body = extract_title(meta, body)
         date_dt = parse_date(meta, md_file)
-        date_str = date_dt.strftime(DATE_FMT)
+        date_fmt = DATETIME_FMT if has_explicit_time(meta) else DATE_FMT
+        date_str = date_dt.strftime(date_fmt)
         categories = get_categories(meta)
         slug = slugify(meta.get("slug", "")) if meta.get("slug") else slugify(md_file.stem)
         html_content = md.convert(body)
+        toc_html = md.toc
         md.reset()
         html_content = fix_relative_img_src(html_content, "..")
         summary = meta.get("summary") or meta.get("description")
@@ -398,6 +431,7 @@ def build_site(args: argparse.Namespace) -> None:
                 "slug": slug,
                 "summary": summary,
                 "content": html_content,
+                "toc": toc_html,
             }
         )
 

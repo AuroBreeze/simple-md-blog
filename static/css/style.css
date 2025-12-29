@@ -287,6 +287,39 @@ a:hover {
   font-size: 0.75rem;
 }
 
+.toc {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.toc ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.toc li {
+  line-height: 1.4;
+}
+
+.toc a {
+  color: var(--ink);
+  font-weight: 600;
+}
+
+.toc a:hover {
+  color: var(--primary);
+}
+
+.toc ul ul {
+  padding-left: 12px;
+  border-left: 1px solid var(--border);
+  margin-left: 6px;
+}
+
 .search-bar {
   display: grid;
   gap: 12px;

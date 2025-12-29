@@ -1,6 +1,7 @@
 ﻿---
 title: Hello, Markdown
 date: 2025-01-05
+time: 09:30
 category: Notes
 summary: A quick tour of the layout and features.
 ---
