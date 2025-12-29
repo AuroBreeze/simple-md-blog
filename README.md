@@ -67,7 +67,16 @@ summary: 布局与功能的快速预览。
 {
   "site_name": "Simple MD Blog",
   "site_description": "A tiny, fast Markdown blog for GitHub Pages.",
-  "custom_domain": "blog.aurobreeze.top"
+  "custom_domain": "blog.aurobreeze.top",
+  "site_url": "https://blog.aurobreeze.top",
+  "clean": true,
+  "feed_limit": 20,
+  "toc_depth": "2-4",
+  "enable_rss": true,
+  "enable_atom": true,
+  "enable_sitemap": true,
+  "enable_404": true,
+  "write_nojekyll": true
 }
 ```
 
@@ -87,7 +96,7 @@ python build.py --output docs
 
 - 自动清理输出：默认在构建前清空输出目录，避免旧页面残留。可用 `--no-clean` 关闭。
 - 草稿：在 front matter 中加入 `draft: true`，该文章不会生成。
-- RSS/Atom：生成 `rss.xml` 和 `atom.xml`，需要在 `site.json` 填写 `site_url`。
-- Sitemap：生成 `sitemap.xml`，同样依赖 `site_url`。
-- 404 页面：自动生成 `404.html`。
-- `.nojekyll`：输出根目录会写入 `.nojekyll`，避免 GitHub Pages 误处理。
+- RSS/Atom：生成 `rss.xml` 和 `atom.xml`，需要在 `site.json` 填写 `site_url`，可用 `enable_rss`/`enable_atom` 控制。
+- Sitemap：生成 `sitemap.xml`，同样依赖 `site_url`，可用 `enable_sitemap` 控制。
+- 404 页面：自动生成 `404.html`，可用 `enable_404` 控制。
+- `.nojekyll`：输出根目录会写入 `.nojekyll`，可用 `write_nojekyll` 控制。

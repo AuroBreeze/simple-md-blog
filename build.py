@@ -56,6 +56,19 @@ def parse_bool(value: object) -> bool:
     return False
 
 
+def parse_int(value: object, default: int) -> int:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return int(value)
+    if isinstance(value, int):
+        return value
+    try:
+        return int(str(value).strip())
+    except ValueError:
+        return default
+
+
 def parse_front_matter(text: str) -> tuple[dict, str]:
     clean_text = text.lstrip("\ufeff")
     lines = clean_text.splitlines()
@@ -462,12 +475,14 @@ def build_search_index(output_dir: Path, posts: list[dict]) -> None:
     write_text(output_dir / "search-index.json", json.dumps(index, indent=2, ensure_ascii=True))
 
 
-def build_rss(output_dir: Path, posts: list[dict], site_url: str, args: argparse.Namespace) -> None:
+def build_rss(
+    output_dir: Path, posts: list[dict], site_url: str, args: argparse.Namespace, feed_limit: int
+) -> None:
     if not site_url:
         return
     site_url = site_url.rstrip("/")
     items = []
-    for post in posts[:FEED_LIMIT]:
+    for post in posts[:feed_limit]:
         link = join_url(site_url, f"posts/{post['slug']}.html")
         items.append(
             "\n".join(
@@ -500,13 +515,15 @@ def build_rss(output_dir: Path, posts: list[dict], site_url: str, args: argparse
     write_text(output_dir / "rss.xml", rss)
 
 
-def build_atom(output_dir: Path, posts: list[dict], site_url: str, args: argparse.Namespace) -> None:
+def build_atom(
+    output_dir: Path, posts: list[dict], site_url: str, args: argparse.Namespace, feed_limit: int
+) -> None:
     if not site_url:
         return
     site_url = site_url.rstrip("/")
     updated = iso_date(posts[0]["date_dt"]) if posts else iso_date(dt.datetime.utcnow())
     entries = []
-    for post in posts[:FEED_LIMIT]:
+    for post in posts[:feed_limit]:
         link = join_url(site_url, f"posts/{post['slug']}.html")
         entries.append(
             "\n".join(
@@ -642,7 +659,8 @@ def build_site(args: argparse.Namespace) -> None:
     custom_domain = (args.custom_domain or "").strip()
     if custom_domain:
         write_text(output_dir / "CNAME", f"{custom_domain}\n")
-    write_nojekyll(output_dir)
+    if args.write_nojekyll:
+        write_nojekyll(output_dir)
 
     site_url = (args.site_url or "").strip()
     if not site_url and custom_domain:
@@ -651,7 +669,7 @@ def build_site(args: argparse.Namespace) -> None:
     posts = []
     md = markdown.Markdown(
         extensions=["fenced_code", "tables", "toc"],
-        extension_configs={"toc": {"toc_depth": "2-4"}},
+        extension_configs={"toc": {"toc_depth": args.toc_depth}},
     )
     for md_file in sorted(posts_dir.glob("*.md")):
         raw_text = md_file.read_text(encoding="utf-8")
@@ -698,10 +716,14 @@ def build_site(args: argparse.Namespace) -> None:
     build_categories(base_template, output_dir, category_map, args)
     build_search(base_template, output_dir, posts, category_map, args)
     build_search_index(output_dir, posts)
-    build_rss(output_dir, posts, site_url, args)
-    build_atom(output_dir, posts, site_url, args)
-    build_sitemap(output_dir, posts, category_map, site_url)
-    build_404(base_template, output_dir, category_map, args)
+    if args.enable_rss:
+        build_rss(output_dir, posts, site_url, args, args.feed_limit)
+    if args.enable_atom:
+        build_atom(output_dir, posts, site_url, args, args.feed_limit)
+    if args.enable_sitemap:
+        build_sitemap(output_dir, posts, category_map, site_url)
+    if args.enable_404:
+        build_404(base_template, output_dir, category_map, args)
 
 
 def main() -> None:
@@ -721,6 +743,10 @@ def main() -> None:
     def cfg_bool(key: str, default: bool) -> bool:
         value = cfg_value(key, default)
         return parse_bool(value) if value is not None else default
+
+    def cfg_int(key: str, default: int) -> int:
+        value = cfg_value(key, default)
+        return parse_int(value, default)
 
     parser = argparse.ArgumentParser(description="Simple Markdown blog generator.")
     parser.add_argument("--config", default=pre_args.config, help="Path to site config JSON.")
@@ -748,6 +774,47 @@ def main() -> None:
         action=argparse.BooleanOptionalAction,
         default=cfg_bool("clean", True),
         help="Clean output directory before build.",
+    )
+    parser.add_argument(
+        "--feed-limit",
+        default=cfg_int("feed_limit", FEED_LIMIT),
+        type=int,
+        help="Maximum number of posts in RSS/Atom feeds.",
+    )
+    parser.add_argument(
+        "--toc-depth",
+        default=cfg_str("toc_depth", "2-4"),
+        help="Heading depth range for TOC (e.g. 2-4).",
+    )
+    parser.add_argument(
+        "--enable-rss",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("enable_rss", True),
+        help="Generate rss.xml.",
+    )
+    parser.add_argument(
+        "--enable-atom",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("enable_atom", True),
+        help="Generate atom.xml.",
+    )
+    parser.add_argument(
+        "--enable-sitemap",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("enable_sitemap", True),
+        help="Generate sitemap.xml.",
+    )
+    parser.add_argument(
+        "--enable-404",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("enable_404", True),
+        help="Generate 404.html.",
+    )
+    parser.add_argument(
+        "--write-nojekyll",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("write_nojekyll", True),
+        help="Write .nojekyll in the output directory.",
     )
     args = parser.parse_args()
     build_site(args)
