@@ -89,7 +89,7 @@ def build_site(args: argparse.Namespace) -> bool:
         except ValueError:
             return path.resolve().as_posix()
 
-    post_files = sorted(posts_dir.glob("*.md"))
+    post_files = sorted(posts_dir.rglob("*.md"), key=lambda p: p.as_posix())
     current_posts = {}
     for md_file in post_files:
         current_posts[rel_key(md_file)] = {"hash": hash_file(md_file)}
@@ -164,6 +164,7 @@ def build_site(args: argparse.Namespace) -> bool:
     category_hash = previous_state.get("category_hash", "")
     archive_hash = previous_state.get("archive_hash", "")
     if aggregate_needed or about_changed:
+        used_slugs = set()
         md = markdown.Markdown(
             extensions=["fenced_code", "tables", "toc"],
             extension_configs={"toc": {"toc_depth": args.toc_depth}},
@@ -179,7 +180,31 @@ def build_site(args: argparse.Namespace) -> bool:
             date_fmt = DATETIME_FMT if time_used else DATE_FMT
             date_str = date_dt.strftime(date_fmt)
             categories = get_categories(meta)
-            slug = slugify(meta.get("slug", "")) if meta.get("slug") else slugify(md_file.stem)
+            explicit_slug = meta.get("slug")
+            candidate_slug = slugify(str(explicit_slug)) if explicit_slug else slugify(md_file.stem)
+            previous_slug = ""
+            if not explicit_slug:
+                previous_slug = previous_posts.get(rel, {}).get("slug", "")
+            if previous_slug and previous_slug not in used_slugs:
+                slug = previous_slug
+            elif candidate_slug not in used_slugs:
+                slug = candidate_slug
+            else:
+                base_hash = hash_text(rel)[:8]
+                slug = f"{candidate_slug}-{base_hash}"
+                if slug in used_slugs:
+                    for length in (10, 12, 16):
+                        slug = f"{candidate_slug}-{hash_text(rel)[:length]}"
+                        if slug not in used_slugs:
+                            break
+                if slug in used_slugs:
+                    counter = 2
+                    while True:
+                        slug = f"{candidate_slug}-{counter}"
+                        if slug not in used_slugs:
+                            break
+                        counter += 1
+            used_slugs.add(slug)
             current_posts[rel]["slug"] = slug
             current_posts[rel]["draft"] = is_draft
             if is_draft:
