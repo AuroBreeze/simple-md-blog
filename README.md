@@ -1,0 +1,62 @@
+# 简易 MD 博客
+
+一个将 Markdown 生成 HTML 的极简静态博客生成器，适合用于 GitHub Pages。
+
+## 目录结构
+
+- posts/        Markdown 文章
+- static/       CSS、JS、图片（会复制到输出根目录）
+- templates/    HTML 模板
+- dist/         生成站点输出
+
+## 快速开始
+
+```powershell
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+python build.py
+```
+
+用浏览器打开 `dist/index.html`。
+
+## 自定义
+
+你可以通过命令行覆盖站点标题和描述：
+
+```powershell
+python build.py --site-name "My Blog" --site-description "Notes from the keyboard."
+```
+
+## 写作
+
+每篇文章是 `posts/` 下的一个 `.md` 文件。可选的 front matter 示例：
+
+```text
+---
+title: 你好，Markdown
+date: 2025-01-05
+category: 随笔
+summary: 布局与功能的快速预览。
+---
+```
+
+如果省略 `title`，会自动取第一行 H1 作为标题，并从正文中移除。
+
+## 图片
+
+`static/` 下的内容会被复制到输出根目录。图片引用示例：
+
+```text
+![Alt](images/your-image.png)
+```
+
+## GitHub Pages
+
+如果你想用 `docs/` 作为 Pages 的发布目录：
+
+```powershell
+python build.py --output docs
+```
+
+然后在 GitHub Pages 设置中选择 `docs/`。

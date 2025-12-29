@@ -1,0 +1,37 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{title}}</title>
+  <meta name="description" content="{{site_description}}">
+  <link rel="stylesheet" href="{{root}}/css/style.css">
+  {{extra_head}}
+</head>
+<body data-root="{{root}}">
+  <header class="site-hero">
+    <div class="hero-inner">
+      <p class="site-eyebrow">Markdown to HTML</p>
+      <h1 class="site-title">{{site_name}}</h1>
+      <p class="site-tagline">{{site_description}}</p>
+    </div>
+  </header>
+  <nav class="site-nav">
+    <a href="{{root}}/index.html">Home</a>
+    <a href="{{root}}/search.html">Search</a>
+  </nav>
+  <main class="layout">
+    <section class="content">
+      {{content}}
+    </section>
+    <aside class="sidebar">
+      {{sidebar}}
+    </aside>
+  </main>
+  <footer class="site-footer">
+    <span>Built with Simple MD Blog</span>
+    <span class="dot">•</span>
+    <span>{{year}}</span>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,379 @@
+﻿@import url('https://fonts.googleapis.com/css2?family=Fraunces:wght@400;600;700&family=Work+Sans:wght@400;500;700&display=swap');
+
+:root {
+  --bg: #f5efe6;
+  --bg-soft: #f0e4d5;
+  --ink: #1e1b16;
+  --muted: #6f665b;
+  --primary: #2c6e6f;
+  --secondary: #d77a61;
+  --card: #fff9f0;
+  --border: #e5d6c6;
+  --shadow: 0 18px 35px rgba(31, 24, 16, 0.12);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: "Work Sans", "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  position: relative;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  top: -140px;
+  right: -120px;
+  width: 380px;
+  height: 380px;
+  background: radial-gradient(circle at top, rgba(215, 122, 97, 0.35), transparent 70%);
+  z-index: -1;
+}
+
+body::after {
+  content: "";
+  position: fixed;
+  bottom: -160px;
+  left: -120px;
+  width: 420px;
+  height: 420px;
+  background: radial-gradient(circle at bottom, rgba(44, 110, 111, 0.35), transparent 70%);
+  z-index: -1;
+}
+
+a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--secondary);
+}
+
+.site-hero {
+  padding: 64px 8vw 32px;
+  background: linear-gradient(120deg, #2c6e6f, #d77a61);
+  color: #fff;
+  position: relative;
+  overflow: hidden;
+}
+
+.site-hero::after {
+  content: "";
+  position: absolute;
+  top: -20px;
+  right: -40px;
+  width: 220px;
+  height: 220px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.18);
+  filter: blur(0.5px);
+}
+
+.hero-inner {
+  max-width: 980px;
+  margin: 0 auto;
+  animation: fadeIn 0.8s ease-out both;
+}
+
+.site-eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.7rem;
+  margin: 0 0 12px;
+}
+
+.site-title {
+  font-family: "Fraunces", serif;
+  font-size: clamp(2.4rem, 4vw, 3.6rem);
+  margin: 0 0 12px;
+}
+
+.site-tagline {
+  font-size: 1.1rem;
+  max-width: 560px;
+  opacity: 0.9;
+}
+
+.site-nav {
+  display: flex;
+  gap: 24px;
+  padding: 16px 8vw;
+  background: rgba(255, 255, 255, 0.65);
+  backdrop-filter: blur(8px);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-nav a {
+  font-weight: 600;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 280px;
+  gap: 32px;
+  padding: 32px 8vw 64px;
+}
+
+.content {
+  min-width: 0;
+}
+
+.sidebar {
+  position: sticky;
+  top: 96px;
+  align-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.panel {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 20px;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+}
+
+.panel h3 {
+  font-family: "Fraunces", serif;
+  margin-top: 0;
+}
+
+.section-head {
+  margin-bottom: 22px;
+}
+
+.section-head h2 {
+  font-family: "Fraunces", serif;
+  font-size: 1.8rem;
+  margin: 0 0 8px;
+}
+
+.section-head p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.post-grid {
+  display: grid;
+  gap: 18px;
+}
+
+.post-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 22px;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  animation: rise 0.6s ease-out both;
+}
+
+.post-meta {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+
+.post-title {
+  font-family: "Fraunces", serif;
+  margin: 0 0 8px;
+}
+
+.post-title a {
+  color: inherit;
+}
+
+.post-summary {
+  margin: 0 0 14px;
+  color: var(--muted);
+}
+
+.post-more {
+  font-weight: 600;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  background: rgba(44, 110, 111, 0.12);
+  border-radius: 999px;
+  font-size: 0.75rem;
+  color: var(--primary);
+  margin-right: 6px;
+}
+
+.post {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 28px;
+  border-radius: 22px;
+  box-shadow: var(--shadow);
+  animation: rise 0.6s ease-out both;
+}
+
+.post-body {
+  line-height: 1.75;
+}
+
+.post-body h2,
+.post-body h3 {
+  font-family: "Fraunces", serif;
+}
+
+.post-body img {
+  max-width: 100%;
+  border-radius: 16px;
+  margin: 16px 0;
+  box-shadow: var(--shadow);
+}
+
+.post-body pre {
+  background: #1f2320;
+  color: #f3f0e8;
+  padding: 16px;
+  border-radius: 12px;
+  overflow-x: auto;
+}
+
+.post-body code {
+  font-family: "Courier New", monospace;
+}
+
+.post-footer {
+  margin-top: 24px;
+}
+
+.category-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.category-list li {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  color: var(--muted);
+}
+
+.category-list a {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.category-list .count {
+  background: #efe2d3;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+
+.search-bar {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  font-size: 1rem;
+}
+
+.search-input:focus {
+  outline: 2px solid rgba(44, 110, 111, 0.4);
+  border-color: var(--primary);
+}
+
+.search-status {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.site-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  padding: 24px;
+  color: var(--muted);
+}
+
+.dot {
+  opacity: 0.6;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 960px) {
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .sidebar {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .site-hero {
+    padding: 48px 6vw 28px;
+  }
+
+  .site-nav {
+    padding: 12px 6vw;
+    flex-wrap: wrap;
+  }
+
+  .layout {
+    padding: 24px 6vw 48px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    scroll-behavior: auto !important;
+  }
+}
