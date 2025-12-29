@@ -4,7 +4,7 @@ date: 2025-07-31
 time: 09:30
 archive: Implementing Redis in C++
 categories: [Notes, C/C++]
-summary: C/C++ 实现 Redis 思路
+summary: Implementing Redis-like list commands (lpush, lpop, rpush, rpop) with doubly linked list and hash map integration.
 ---
 
 # Implementing Redis in C++ : F
@@ -416,9 +416,3 @@ static void process_timers(){
 这些就是代码修改的主体，其他的部分改动较小，我们就不再讲述了，鉴于代码放在这里实在太多，我给出我的github地址，大家可以去找`study/dev_5`的目录进行查看
 
 github地址：[https://github.com/AuroBreeze/Implementing-Redis-in-C](https://github.com/AuroBreeze/Implementing-Redis-in-C)
-
-
-
-
-
-

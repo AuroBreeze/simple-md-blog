@@ -4,7 +4,7 @@ date: 2025-07-31
 time: 09:30
 archive: Implementing Redis in C++
 categories: [Notes, C/C++]
-summary: C/C++ 实现 Redis 思路
+summary: Basic non-blocking TCP server/client implementation for Redis-like system with socket programming and Windows/Linux compatibility.
 ---
 
 # Implementing Redis in C++ : A
@@ -880,5 +880,3 @@ g++ -o client.exe client.cpp -lws2_32
 ## 结语
 
 恭喜你，你已经成功创建了一个简单的非阻塞的TCP客户端程序。
-
-

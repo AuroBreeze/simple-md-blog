@@ -4,7 +4,7 @@ date: 2025-07-31
 time: 09:30
 archive: Implementing Redis in C++
 categories: [Notes, C/C++]
-summary: C/C++ 实现 Redis 思路
+summary: Custom hash table implementation with incremental rehashing, FNV hash algorithm, and intrusive data structures for Redis-like storage.
 ---
 
 # Implementing Redis in C++ : C
@@ -1119,25 +1119,3 @@ int main() {
     return 0;
 }
 ```
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

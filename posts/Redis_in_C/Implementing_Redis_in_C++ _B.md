@@ -4,7 +4,7 @@ date: 2025-07-31
 time: 09:30
 archive: Implementing Redis in C++
 categories: [Notes, C/C++]
-summary: C/C++ 实现 Redis 思路
+summary: Implementing key-value storage with GET/SET/DEL commands, request parsing, and response handling for Redis-like server.
 ---
 
 # Implementing Redis in C++ : B
@@ -1460,7 +1460,3 @@ int main(int argc, char **argv) {
     return 0;
 }
 ```
-
-
-
-
