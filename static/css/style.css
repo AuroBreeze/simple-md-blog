@@ -145,6 +145,7 @@ a:hover {
   margin-left: auto;
   display: flex;
   align-items: center;
+  gap: 10px;
 }
 
 .nav-actions:empty {
@@ -165,6 +166,24 @@ a:hover {
 .theme-toggle:hover {
   border-color: var(--primary);
   color: var(--primary);
+}
+
+.rss-link {
+  border: 1px solid var(--border);
+  background: var(--card);
+  color: var(--ink);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  letter-spacing: 0.04em;
+}
+
+.rss-link:hover {
+  border-color: var(--secondary);
+  color: var(--secondary);
 }
 
 .layout {
@@ -448,6 +467,68 @@ a:hover {
 [data-theme="dark"] .post-body :not(pre) > code {
   background: #2a2218;
   border-color: #3b3025;
+}
+
+.codehilite .c,
+.codehilite .c1,
+.codehilite .cm {
+  color: #9a8f85;
+  font-style: italic;
+}
+
+.codehilite .k,
+.codehilite .kd,
+.codehilite .kn,
+.codehilite .kp,
+.codehilite .kr,
+.codehilite .kt {
+  color: #ffb26b;
+}
+
+.codehilite .s,
+.codehilite .s1,
+.codehilite .s2,
+.codehilite .sb,
+.codehilite .sc,
+.codehilite .sd,
+.codehilite .se,
+.codehilite .sh,
+.codehilite .si,
+.codehilite .sx {
+  color: #9cd8a8;
+}
+
+.codehilite .m,
+.codehilite .mf,
+.codehilite .mh,
+.codehilite .mi,
+.codehilite .mo {
+  color: #f2c97d;
+}
+
+.codehilite .o {
+  color: #f1c8ac;
+}
+
+.codehilite .na {
+  color: #f0a46b;
+}
+
+.codehilite .nb {
+  color: #7dd3e8;
+}
+
+.codehilite .nc,
+.codehilite .nf {
+  color: #82b8ff;
+}
+
+.codehilite .nt {
+  color: #ff8d8d;
+}
+
+.codehilite .err {
+  color: #ff6b6b;
 }
 
 .post-body blockquote {

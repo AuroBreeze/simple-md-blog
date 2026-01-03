@@ -36,7 +36,14 @@ from .pages import (
     build_search_index,
     build_sitemap,
 )
-from .render import copy_static, fix_relative_img_src, read_template, strip_tags, write_text
+from .render import (
+    copy_static,
+    fix_relative_img_src,
+    read_template,
+    remove_stale_static,
+    strip_tags,
+    write_text,
+)
 from .utils import clean_output_dir, parse_bool, parse_int, write_nojekyll
 
 DATE_FMT = "%Y-%m-%d"
@@ -133,7 +140,11 @@ def build_site(args: argparse.Namespace) -> bool:
     templates_hash = hash_paths(list_files(templates_dir), project_root)
     config_hash = hash_file(config_path) if config_path.exists() else ""
     snippets_hash = hash_text("\n".join([analytics_html, widget_html, about_html]))
-    static_hash = hash_paths(list_files(static_dir), project_root) if static_dir.exists() else ""
+    static_files = list_files(static_dir) if static_dir.exists() else []
+    static_rel_files = (
+        [path.relative_to(static_dir).as_posix() for path in static_files] if static_files else []
+    )
+    static_hash = hash_paths(static_files, project_root) if static_files else ""
 
     about_page = Path("pages") / "about.md"
     about_page_hash = hash_file(about_page) if about_page.exists() else ""
@@ -151,6 +162,9 @@ def build_site(args: argparse.Namespace) -> bool:
 
     previous_state = load_lock(lock_path) if incremental else {}
     previous_posts = previous_state.get("posts", {}) if isinstance(previous_state, dict) else {}
+    previous_static_files = (
+        previous_state.get("static_files", []) if isinstance(previous_state, dict) else []
+    )
     previous_hashes = {key: value.get("hash", "") for key, value in previous_posts.items()}
     current_hashes = {key: value.get("hash", "") for key, value in current_posts.items()}
 
@@ -233,8 +247,10 @@ def build_site(args: argparse.Namespace) -> bool:
     (output_dir / "posts").mkdir(parents=True, exist_ok=True)
     (output_dir / "categories").mkdir(parents=True, exist_ok=True)
 
-    if static_dir.exists() and static_changed:
-        copy_static(static_dir, output_dir)
+    if static_changed:
+        remove_stale_static(output_dir, previous_static_files, static_rel_files)
+        if static_dir.exists():
+            copy_static(static_dir, output_dir)
 
     custom_domain = (args.custom_domain or "").strip()
     if custom_domain:
@@ -245,6 +261,7 @@ def build_site(args: argparse.Namespace) -> bool:
     site_url = (args.site_url or "").strip()
     if not site_url and custom_domain:
         site_url = f"https://{custom_domain}"
+    args.site_url = site_url
 
     posts = []
     current_post_state = {}
@@ -289,8 +306,11 @@ def build_site(args: argparse.Namespace) -> bool:
             if is_draft:
                 return result
             md = markdown.Markdown(
-                extensions=["fenced_code", "tables", "toc"],
-                extension_configs={"toc": {"toc_depth": args.toc_depth}},
+                extensions=["fenced_code", "tables", "toc", "codehilite"],
+                extension_configs={
+                    "toc": {"toc_depth": args.toc_depth},
+                    "codehilite": {"guess_lang": False},
+                },
             )
             html_content = md.convert(body)
             toc_html = md.toc
@@ -494,11 +514,35 @@ def build_site(args: argparse.Namespace) -> bool:
             theme_default,
         )
         if args.enable_rss:
-            build_rss(output_dir, posts, site_url, args, args.feed_limit)
+            build_rss(
+                output_dir,
+                posts,
+                site_url,
+                args,
+                args.feed_limit,
+                full_content=args.feed_full_content,
+            )
         if args.enable_atom:
-            build_atom(output_dir, posts, site_url, args, args.feed_limit)
+            build_atom(
+                output_dir,
+                posts,
+                site_url,
+                args,
+                args.feed_limit,
+                full_content=args.feed_full_content,
+            )
         if args.enable_sitemap:
-            build_sitemap(output_dir, posts, category_map, site_url, total_pages)
+            build_sitemap(
+                output_dir,
+                posts,
+                category_map,
+                site_url,
+                total_pages,
+                include_about=about_page.exists(),
+                include_rss=args.enable_rss,
+                include_atom=args.enable_atom,
+                include_404=args.enable_404,
+            )
         if args.enable_404:
             build_404(
                 base_template,
@@ -553,6 +597,7 @@ def build_site(args: argparse.Namespace) -> bool:
         "config_hash": config_hash,
         "snippets_hash": snippets_hash,
         "static_hash": static_hash,
+        "static_files": static_rel_files,
         "about_page_hash": about_page_hash,
         "category_hash": category_hash,
         "archive_hash": archive_hash,
@@ -624,6 +669,12 @@ def main() -> None:
         default=cfg_int("feed_limit", FEED_LIMIT),
         type=int,
         help="Maximum number of posts in RSS/Atom feeds.",
+    )
+    parser.add_argument(
+        "--feed-full-content",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("feed_full_content", True),
+        help="Include full HTML content in RSS/Atom feeds.",
     )
     parser.add_argument(
         "--posts-per-page",

@@ -43,6 +43,7 @@ toc_depth = "2-4"
 # 订阅与附加页面
 # RSS/Atom 订阅最多包含的文章数
 feed_limit = 20
+feed_full_content = true
 # 是否生成 rss.xml
 enable_rss = true
 # 是否生成 atom.xml

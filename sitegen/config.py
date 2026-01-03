@@ -97,7 +97,10 @@ def resolve_about_html(args: object) -> str:
             if suffix in {".html", ".htm"}:
                 return text
             if suffix == ".md":
-                md = markdown.Markdown(extensions=["fenced_code", "tables"])
+                md = markdown.Markdown(
+                    extensions=["fenced_code", "tables", "codehilite"],
+                    extension_configs={"codehilite": {"guess_lang": False}},
+                )
                 return md.convert(text)
             escaped = html.escape(text).replace("\n", "<br>")
             return f"<p>{escaped}</p>"

@@ -14,6 +14,19 @@ from .render import fix_relative_img_src, render_template, strip_tags, write_tex
 from .utils import iso_date, join_url, parse_bool, rfc822_date
 
 
+def wrap_cdata(text: str) -> str:
+    return "<![CDATA[" + text.replace("]]>", "]]]]><![CDATA[>") + "]]>"
+
+
+def build_rss_link(root: str, args: object) -> str:
+    if not parse_bool(getattr(args, "enable_rss", False)):
+        return ""
+    site_url = (getattr(args, "site_url", "") or "").strip()
+    if not site_url:
+        return ""
+    return f'<a class="rss-link" href="{root}/rss.xml">RSS</a>'
+
+
 def build_category_list(category_map: dict, root: str) -> str:
     items = []
     for name, posts in sorted(category_map.items(), key=lambda x: (-len(x[1]), x[0].lower())):
@@ -216,6 +229,7 @@ def build_index(
         return f'<nav class="pagination">{"".join(items)}</nav>'
 
     root = "."
+    rss_link = build_rss_link(root, args)
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
@@ -248,6 +262,7 @@ def build_index(
             extra_head="",
             theme_toggle=theme_toggle,
             theme_default=theme_default,
+            rss_link=rss_link,
             analytics=analytics_html,
         )
         filename = "index.html" if page == 1 else page_url(page)
@@ -271,6 +286,7 @@ def build_posts(
     workers: int = 1,
 ) -> None:
     root = ".."
+    rss_link = build_rss_link(root, args)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
     archive_map: dict[str, list[dict]] = {}
@@ -336,6 +352,7 @@ def build_posts(
             extra_head=f'<script src="{root}/js/sidebar-tabs.js" defer></script>',
             theme_toggle=theme_toggle,
             theme_default=theme_default,
+            rss_link=rss_link,
             analytics=analytics_html,
         )
         write_text(output_dir / "posts" / f"{post['slug']}.html", html_doc)
@@ -362,6 +379,7 @@ def build_categories(
     theme_default: str,
 ) -> None:
     root = ".."
+    rss_link = build_rss_link(root, args)
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
@@ -385,6 +403,7 @@ def build_categories(
             extra_head="",
             theme_toggle=theme_toggle,
             theme_default=theme_default,
+            rss_link=rss_link,
             analytics=analytics_html,
         )
         write_text(output_dir / "categories" / f"{slugify(category)}.html", html_doc)
@@ -403,6 +422,7 @@ def build_search(
     theme_default: str,
 ) -> None:
     root = "."
+    rss_link = build_rss_link(root, args)
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
@@ -430,6 +450,7 @@ def build_search(
         extra_head=extra_head,
         theme_toggle=theme_toggle,
         theme_default=theme_default,
+        rss_link=rss_link,
         analytics=analytics_html,
     )
     write_text(output_dir / "search.html", html_doc)
@@ -469,14 +490,18 @@ def build_about(
     title, body = extract_title(meta, body)
     body = normalize_list_spacing(body)
     md = markdown.Markdown(
-        extensions=["fenced_code", "tables", "toc"],
-        extension_configs={"toc": {"toc_depth": args.toc_depth}},
+        extensions=["fenced_code", "tables", "toc", "codehilite"],
+        extension_configs={
+            "toc": {"toc_depth": args.toc_depth},
+            "codehilite": {"guess_lang": False},
+        },
     )
     html_content = md.convert(body)
     toc_html = md.toc
     md.reset()
     html_content = fix_relative_img_src(html_content, ".")
     sidebar = build_sidebar(category_map, ".", about_html, toc_html, widget_html)
+    rss_link = build_rss_link(".", args)
     content = (
         '<article class="post">'
         f'<h1 class="post-title">{html.escape(title)}</h1>'
@@ -495,6 +520,7 @@ def build_about(
         extra_head="",
         theme_toggle=theme_toggle,
         theme_default=theme_default,
+        rss_link=rss_link,
         analytics=analytics_html,
     )
     write_text(output_dir / "about.html", html_doc)
@@ -513,6 +539,7 @@ def build_archive(
     theme_default: str,
 ) -> None:
     root = "."
+    rss_link = build_rss_link(root, args)
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     archive_groups: dict[str, list[dict]] = {}
     date_groups: dict[str, list[dict]] = {}
@@ -611,13 +638,19 @@ def build_archive(
         extra_head=f'<script src="{root}/js/archive.js" defer></script>',
         theme_toggle=theme_toggle,
         theme_default=theme_default,
+        rss_link=rss_link,
         analytics=analytics_html,
     )
     write_text(output_dir / "archive.html", html_doc)
 
 
 def build_rss(
-    output_dir: Path, posts: list[dict], site_url: str, args: object, feed_limit: int
+    output_dir: Path,
+    posts: list[dict],
+    site_url: str,
+    args: object,
+    feed_limit: int,
+    full_content: bool = False,
 ) -> None:
     if not site_url:
         return
@@ -625,6 +658,8 @@ def build_rss(
     items = []
     for post in posts[:feed_limit]:
         link = join_url(site_url, f"posts/{post['slug']}.html")
+        content_html = wrap_cdata(post["content"]) if full_content else ""
+        content_block = f"<content:encoded>{content_html}</content:encoded>" if full_content else ""
         items.append(
             "\n".join(
                 [
@@ -634,15 +669,21 @@ def build_rss(
                     f"<guid>{link}</guid>",
                     f"<pubDate>{rfc822_date(post['date_dt'])}</pubDate>",
                     f"<description>{html.escape(post['summary'])}</description>",
+                    content_block,
                     "</item>",
                 ]
             )
         )
     last_build = rfc822_date(posts[0]["date_dt"]) if posts else rfc822_date(dt.datetime.utcnow())
+    rss_attrs = (
+        'version="2.0" xmlns:content="http://purl.org/rss/1.0/modules/content/"'
+        if full_content
+        else 'version="2.0"'
+    )
     rss = "\n".join(
         [
             '<?xml version="1.0" encoding="UTF-8"?>',
-            '<rss version="2.0">',
+            f"<rss {rss_attrs}>",
             "<channel>",
             f"<title>{html.escape(args.site_name)}</title>",
             f"<link>{site_url}/</link>",
@@ -657,7 +698,12 @@ def build_rss(
 
 
 def build_atom(
-    output_dir: Path, posts: list[dict], site_url: str, args: object, feed_limit: int
+    output_dir: Path,
+    posts: list[dict],
+    site_url: str,
+    args: object,
+    feed_limit: int,
+    full_content: bool = False,
 ) -> None:
     if not site_url:
         return
@@ -666,6 +712,8 @@ def build_atom(
     entries = []
     for post in posts[:feed_limit]:
         link = join_url(site_url, f"posts/{post['slug']}.html")
+        content_html = wrap_cdata(post["content"]) if full_content else ""
+        content_block = f'<content type="html">{content_html}</content>' if full_content else ""
         entries.append(
             "\n".join(
                 [
@@ -675,6 +723,7 @@ def build_atom(
                     f"<id>{link}</id>",
                     f"<updated>{iso_date(post['date_dt'])}</updated>",
                     f"<summary>{html.escape(post['summary'])}</summary>",
+                    content_block,
                     "</entry>",
                 ]
             )
@@ -696,20 +745,31 @@ def build_atom(
 
 
 def build_sitemap(
-    output_dir: Path, posts: list[dict], category_map: dict, site_url: str, total_pages: int
+    output_dir: Path,
+    posts: list[dict],
+    category_map: dict,
+    site_url: str,
+    total_pages: int,
+    *,
+    include_about: bool = True,
+    include_rss: bool = True,
+    include_atom: bool = True,
+    include_404: bool = True,
 ) -> None:
     if not site_url:
         return
     site_url = site_url.rstrip("/")
-    urls = [
-        (site_url + "/", None),
-        (join_url(site_url, "about.html"), None),
-        (join_url(site_url, "archive.html"), None),
-        (join_url(site_url, "search.html"), None),
-        (join_url(site_url, "rss.xml"), None),
-        (join_url(site_url, "atom.xml"), None),
-        (join_url(site_url, "404.html"), None),
-    ]
+    urls = [(site_url + "/", None)]
+    if include_about:
+        urls.append((join_url(site_url, "about.html"), None))
+    urls.append((join_url(site_url, "archive.html"), None))
+    urls.append((join_url(site_url, "search.html"), None))
+    if include_rss:
+        urls.append((join_url(site_url, "rss.xml"), None))
+    if include_atom:
+        urls.append((join_url(site_url, "atom.xml"), None))
+    if include_404:
+        urls.append((join_url(site_url, "404.html"), None))
     if total_pages > 1:
         for page in range(2, total_pages + 1):
             urls.append((join_url(site_url, f"page-{page}.html"), None))
@@ -763,6 +823,7 @@ def build_404(
     theme_default: str,
 ) -> None:
     root = "."
+    rss_link = build_rss_link(root, args)
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     content = (
         '<div class="section-head">'
@@ -786,6 +847,7 @@ def build_404(
         extra_head="",
         theme_toggle=theme_toggle,
         theme_default=theme_default,
+        rss_link=rss_link,
         analytics=analytics_html,
     )
     write_text(output_dir / "404.html", html_doc)

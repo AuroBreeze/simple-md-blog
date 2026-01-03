@@ -55,3 +55,32 @@ def copy_static(static_dir: Path, output_dir: Path) -> None:
             shutil.copytree(item, dest)
         else:
             shutil.copy2(item, dest)
+
+
+def remove_stale_static(
+    output_dir: Path, previous_files: list[str], current_files: list[str]
+) -> None:
+    if not previous_files:
+        return
+    current_set = {Path(path) for path in current_files}
+    for rel_str in previous_files:
+        rel = Path(rel_str)
+        if rel.is_absolute() or ".." in rel.parts:
+            continue
+        if rel in current_set:
+            continue
+        target = output_dir / rel
+        if target.is_symlink() or target.is_file():
+            try:
+                target.unlink()
+            except FileNotFoundError:
+                pass
+        elif target.is_dir():
+            shutil.rmtree(target, ignore_errors=True)
+        parent = target.parent
+        while parent != output_dir and parent.exists():
+            try:
+                parent.rmdir()
+            except OSError:
+                break
+            parent = parent.parent
