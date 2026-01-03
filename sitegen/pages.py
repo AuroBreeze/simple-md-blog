@@ -10,7 +10,7 @@ from pathlib import Path
 import markdown
 
 from .content import extract_title, normalize_list_spacing, parse_front_matter, slugify
-from .render import fix_relative_img_src, render_template, strip_tags, write_text
+from .render import add_img_loading, fix_relative_img_src, render_template, strip_tags, write_text
 from .utils import iso_date, join_url, parse_bool, rfc822_date
 
 
@@ -500,6 +500,7 @@ def build_about(
     toc_html = md.toc
     md.reset()
     html_content = fix_relative_img_src(html_content, ".")
+    html_content = add_img_loading(html_content)
     sidebar = build_sidebar(category_map, ".", about_html, toc_html, widget_html)
     rss_link = build_rss_link(".", args)
     content = (

@@ -5,6 +5,7 @@ import shutil
 from pathlib import Path
 
 IMG_SRC_RE = re.compile(r'<img([^>]*?)src="([^"]+)"', re.IGNORECASE)
+IMG_TAG_RE = re.compile("<img\b([^>]*?)>", re.IGNORECASE)
 TAG_RE = re.compile(r"<[^>]+>")
 
 
@@ -18,6 +19,26 @@ def fix_relative_img_src(html_text: str, root: str) -> str:
         return f'<img{attrs}src="{root}/{src}"'
 
     return IMG_SRC_RE.sub(repl, html_text)
+
+
+def add_img_loading(html_text: str, loading: str = "lazy") -> str:
+    def repl(match: re.Match) -> str:
+        attrs = match.group(1)
+        if re.search(r"\bloading\s*=", attrs, flags=re.IGNORECASE):
+            return match.group(0)
+        attrs_trim = attrs.rstrip()
+        self_closing = attrs_trim.endswith("/")
+        if self_closing:
+            attrs_trim = attrs_trim[:-1].rstrip()
+        if attrs_trim and not attrs_trim.endswith(" "):
+            attrs_trim += " "
+        elif not attrs_trim:
+            attrs_trim = " "
+        if self_closing:
+            return f"<img{attrs_trim}loading=\"{loading}\" />"
+        return f"<img{attrs_trim}loading=\"{loading}\">"
+
+    return IMG_TAG_RE.sub(repl, html_text)
 
 
 def strip_tags(html_text: str) -> str:

@@ -36,7 +36,7 @@ theme_default = "auto"
 
 # 列表与目录
 # 首页每页文章数量（启用分页）
-posts_per_page = 8
+posts_per_page = 6
 # 目录层级（TOC）范围，例如 2-4 表示 h2 到 h4
 toc_depth = "2-4"
 

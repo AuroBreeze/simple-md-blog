@@ -38,6 +38,7 @@ from .pages import (
 )
 from .render import (
     copy_static,
+    add_img_loading,
     fix_relative_img_src,
     read_template,
     remove_stale_static,
@@ -316,6 +317,7 @@ def build_site(args: argparse.Namespace) -> bool:
             toc_html = md.toc
             md.reset()
             html_content = fix_relative_img_src(html_content, "..")
+            html_content = add_img_loading(html_content)
             summary = meta.get("summary") or meta.get("description")
             if not summary:
                 summary = strip_tags(html_content).strip().replace("\n", " ")
