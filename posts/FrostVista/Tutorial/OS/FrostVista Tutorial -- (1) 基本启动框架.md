@@ -4,7 +4,7 @@ date  : 2026-01-09
 time  : 17:02:05
 archive: FrostVista
 categories: [OS, Kernel, C/C++, Tools]
-summary: 
+summary: A beginner-friendly guide to building a minimal RISC-V OS boot framework with linker scripts, assembly startup code, UART output, and Makefile configuration.
 ---
 
 # FrostVista的基本启动框架
@@ -218,4 +218,3 @@ clean:
 ```
 
 我们就不详细介绍了，这里面主要是编译，链接，运行，清理等操作。
-
