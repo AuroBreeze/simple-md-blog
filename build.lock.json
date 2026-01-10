@@ -1,15 +1,16 @@
 {
   "version": 1,
-  "built_at": "2026-01-10T12:40:46",
+  "built_at": "2026-01-10T12:44:43",
   "generator_hash": "bd056c2ba7da5a1bf776e68ee6b246c4b17fb70b11402307a3602f33d3305ced",
-  "templates_hash": "2da6f6c57d8a8e40e48de8c13ccdc3b57c4b1775c5153ba94d61eefd2cb61cf5",
+  "templates_hash": "7f4f04f5e844ffb3f13f48075d08395bf6c5bfb4987886c903b2517b3d1ec452",
   "config_hash": "30635989198f386e23b2c132024455b6f5609b824780d300498e9f71e601874a",
   "snippets_hash": "cda0f81d61e5406c2bdda4b5105a3b0c59288c1bceddac54edb96ad8954b6a4c",
-  "static_hash": "2852726c076e71ee5529e70593133a4f41f76b7d73fd98490a95eb5b65bae93f",
+  "static_hash": "a079c6afdd3be831b9af82e0aa4e6d81ceb2071d329eb3496396b502ebdf55af",
   "static_files": [
     "css/style.css",
     "images/sample.svg",
     "js/archive.js",
+    "js/code-copy.js",
     "js/search.js",
     "js/sidebar-tabs.js",
     "js/theme.js"
