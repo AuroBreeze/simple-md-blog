@@ -10,7 +10,15 @@ from pathlib import Path
 
 import markdown
 
-from .cache import hash_file, hash_paths, hash_text, list_files, load_lock, write_lock
+from .cache import (
+    hash_file,
+    hash_paths,
+    hash_text,
+    hash_text_file_variants,
+    list_files,
+    load_lock,
+    write_lock,
+)
 from .config import load_config, resolve_about_html, resolve_analytics, resolve_widget_html
 from .content import (
     count_words,
@@ -168,8 +176,12 @@ def build_site(args: argparse.Namespace) -> bool:
 
     post_files = sorted(posts_dir.rglob("*.md"), key=lambda p: p.as_posix())
     current_posts = {}
+    current_post_hash_variants = {}
     for md_file in post_files:
-        current_posts[lock_key(md_file)] = {"hash": hash_file(md_file)}
+        key = lock_key(md_file)
+        canonical_hash, crlf_hash = hash_text_file_variants(md_file)
+        current_posts[key] = {"hash": canonical_hash}
+        current_post_hash_variants[key] = {canonical_hash, crlf_hash}
 
     previous_state = load_lock(lock_path) if incremental else {}
     previous_posts_raw = previous_state.get("posts", {}) if isinstance(previous_state, dict) else {}
@@ -185,9 +197,18 @@ def build_site(args: argparse.Namespace) -> bool:
     previous_hashes = {key: value.get("hash", "") for key, value in previous_posts.items()}
     current_hashes = {key: value.get("hash", "") for key, value in current_posts.items()}
 
+    def hashes_match(key: str) -> bool:
+        prev_hash = previous_hashes.get(key)
+        if not prev_hash:
+            return False
+        variants = current_post_hash_variants.get(key)
+        if not variants:
+            return False
+        return prev_hash in variants
+
     added_posts = {key for key in current_hashes if key not in previous_hashes}
     removed_posts = {key for key in previous_hashes if key not in current_hashes}
-    modified_posts = {key for key in current_hashes if key in previous_hashes and current_hashes[key] != previous_hashes[key]}
+    modified_posts = {key for key in current_hashes if key in previous_hashes and not hashes_match(key)}
     posts_changed = bool(added_posts or removed_posts or modified_posts)
 
     def stale_status_changed(state: dict) -> bool:
@@ -303,8 +324,8 @@ def build_site(args: argparse.Namespace) -> bool:
                 prev_info = previous_posts.get(rel, {})
                 prev_hash = prev_info.get("hash")
                 prev_updated = prev_info.get("updated")
-                current_hash = current_posts.get(rel, {}).get("hash")
-                if prev_updated and prev_hash and current_hash and prev_hash == current_hash:
+                variants = current_post_hash_variants.get(rel)
+                if prev_updated and prev_hash and variants and prev_hash in variants:
                     try:
                         # Preserve updated timestamps for unchanged posts across git checkouts.
                         updated_dt = dt.datetime.fromisoformat(prev_updated)

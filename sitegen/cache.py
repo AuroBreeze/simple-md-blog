@@ -24,6 +24,14 @@ def hash_file(path: Path) -> str:
     return hash_bytes(path.read_bytes())
 
 
+def hash_text_file_variants(path: Path) -> tuple[str, str]:
+    data = path.read_bytes()
+    normalized = data.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
+    canonical = hash_bytes(normalized)
+    crlf = hash_bytes(normalized.replace(b"\n", b"\r\n"))
+    return canonical, crlf
+
+
 def hash_paths(paths: list[Path], base: Optional[Path] = None) -> str:
     digest = hashlib.sha256()
     for path in sorted(paths, key=lambda p: p.as_posix()):
