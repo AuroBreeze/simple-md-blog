@@ -150,19 +150,35 @@ def build_site(args: argparse.Namespace) -> bool:
     about_page = Path("pages") / "about.md"
     about_page_hash = hash_file(about_page) if about_page.exists() else ""
 
-    def rel_key(path: Path) -> str:
+    def lock_key(path: Path) -> str:
+        parent = path.parent.name
+        if parent:
+            return f"{parent}/{path.name}"
+        return path.name
+
+    def normalize_lock_key(value: str) -> str:
         try:
-            return path.relative_to(project_root).as_posix()
-        except ValueError:
-            return path.resolve().as_posix()
+            path = Path(value)
+        except TypeError:
+            return str(value)
+        parent = path.parent.name
+        if parent:
+            return f"{parent}/{path.name}"
+        return path.name
 
     post_files = sorted(posts_dir.rglob("*.md"), key=lambda p: p.as_posix())
     current_posts = {}
     for md_file in post_files:
-        current_posts[rel_key(md_file)] = {"hash": hash_file(md_file)}
+        current_posts[lock_key(md_file)] = {"hash": hash_file(md_file)}
 
     previous_state = load_lock(lock_path) if incremental else {}
-    previous_posts = previous_state.get("posts", {}) if isinstance(previous_state, dict) else {}
+    previous_posts_raw = previous_state.get("posts", {}) if isinstance(previous_state, dict) else {}
+    previous_posts = {}
+    for key, value in previous_posts_raw.items():
+        normalized = normalize_lock_key(str(key))
+        if normalized in previous_posts:
+            continue
+        previous_posts[normalized] = value
     previous_static_files = (
         previous_state.get("static_files", []) if isinstance(previous_state, dict) else []
     )
@@ -271,7 +287,7 @@ def build_site(args: argparse.Namespace) -> bool:
     archive_hash = previous_state.get("archive_hash", "")
     if aggregate_needed or about_changed:
         def parse_post_data(md_file: Path) -> dict:
-            rel = rel_key(md_file)
+            rel = lock_key(md_file)
             raw_text = md_file.read_text(encoding="utf-8")
             meta, body = parse_front_matter(raw_text)
             is_draft = parse_bool(meta.get("draft"))

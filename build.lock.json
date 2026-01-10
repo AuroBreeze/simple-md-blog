@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "built_at": "2026-01-03T22:07:23",
-  "generator_hash": "aa0fcb2034e2142ae978391371c55a77d024315333a1ce6a26e3084fc3b25c62",
+  "built_at": "2026-01-10T12:35:54",
+  "generator_hash": "196b43734514179ce9cdd0459009f18cb036ea699a750f8ee109c8811123c504",
   "templates_hash": "2da6f6c57d8a8e40e48de8c13ccdc3b57c4b1775c5153ba94d61eefd2cb61cf5",
   "config_hash": "30635989198f386e23b2c132024455b6f5609b824780d300498e9f71e601874a",
   "snippets_hash": "cda0f81d61e5406c2bdda4b5105a3b0c59288c1bceddac54edb96ad8954b6a4c",
@@ -15,184 +15,190 @@
     "js/theme.js"
   ],
   "about_page_hash": "679a9facf6002f8f1a0cd3acba4f79b5c8e629e2e3850554db6fd850dd331e91",
-  "category_hash": "cfa1e2a961e268a2476a8fbbcb4a4f56bc106cac2a136e1dd8ff77dd35f9fa71",
-  "archive_hash": "4a2ec8f4dfd48eb1a5646508a5742d00fb6bd255bb492574cc4abd66b05e61fe",
+  "category_hash": "404d0c70c9c7347d3818171c1e681edec745d25fe650a01fc9da8e0522ff89e0",
+  "archive_hash": "532ea1b9572134c90aa86d89d184fab135a08ef6554cb5977e427e9e88de0653",
   "posts": {
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_10.md": {
+    "2025_12/2025_12_10.md": {
       "hash": "851fbb0c5479fdf4701c5fccd18d1ed6f5631a86fd80e63ca6b73aa7b5587320",
       "slug": "2025-12-10",
       "draft": false,
       "updated": "2025-12-29T21:52:25"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_11.md": {
+    "2025_12/2025_12_11.md": {
       "hash": "cea1f180dc53e675a686c0c4e284e26c6201764757b122a5c4b5ef93a1c0a3b7",
       "slug": "2025-12-11",
       "draft": false,
       "updated": "2025-12-29T21:52:32"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_12.md": {
+    "2025_12/2025_12_12.md": {
       "hash": "f3d61df3b96d0f8cebc5c7b3e79bf133e3ed6cca4dc489d1e68b75fd5d90b7af",
       "slug": "2025-12-12",
       "draft": false,
       "updated": "2025-12-29T21:52:34"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_14.md": {
+    "2025_12/2025_12_14.md": {
       "hash": "f15906d3e2f5691ec3f90e6d03af8714af118cda925082d439f5754d1ca693bc",
       "slug": "2025-12-14",
       "draft": false,
       "updated": "2025-12-29T21:52:36"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_17.md": {
+    "2025_12/2025_12_17.md": {
       "hash": "75dd71dd33cdae52f59e64f91be2258deb1374459c7890d4f22e066604b1aac0",
       "slug": "2025-12-17",
       "draft": false,
       "updated": "2025-12-29T21:52:39"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_19.md": {
+    "2025_12/2025_12_19.md": {
       "hash": "66b7763c1b575e74af0e6eb25e06cbac2c8528b8ffefc8efe4c2d525129143e1",
       "slug": "2025-12-19",
       "draft": false,
       "updated": "2025-12-29T21:52:43"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_20.md": {
+    "2025_12/2025_12_20.md": {
       "hash": "0860e3456ddedd2ddc26f275b208e16c48eddcb9d3dad9a457d50f4345f15f01",
       "slug": "2025-12-20",
       "draft": false,
       "updated": "2025-12-29T21:52:45"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_21.md": {
+    "2025_12/2025_12_21.md": {
       "hash": "d4c0c3643fe76d3d142c7d916957356f3b2bf45b059d87cf3d531e511ce57168",
       "slug": "2025-12-21",
       "draft": false,
       "updated": "2025-12-29T21:52:47"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_23.md": {
+    "2025_12/2025_12_23.md": {
       "hash": "d91f8cdf75d370edd17b362c1a2764a3184a2199abaea42bd7eef71155e31ae5",
       "slug": "2025-12-23",
       "draft": false,
       "updated": "2025-12-29T21:52:49"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2025_12/2025_12_27.md": {
+    "2025_12/2025_12_27.md": {
       "hash": "580fbf590904909d1902e753fde0ff8a544facac80082c3eb45fa04db2b40903",
       "slug": "2025-12-27",
       "draft": false,
       "updated": "2025-12-29T21:52:52"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/2026_1/2026_1_3.md": {
+    "2026_1/2026_1_3.md": {
       "hash": "efd1714b2f9a47487a2a55e57b9ee2bc10e83dc577ca9fe1505a9bb84b40f721",
       "slug": "2026-1-3",
       "draft": false,
       "updated": "2026-01-03T21:20:26"
     },
-    "D:/code/Python/simple-md-blog/posts/FrostVista/CLINT.md": {
+    "OS/FrostVista Tutorial -- (1) \u57fa\u672c\u542f\u52a8\u6846\u67b6.md": {
+      "hash": "f75798c9952c1182426ddb51370d2e7804fbfd9b7950ada71fc7052600293e01",
+      "slug": "frostvista-tutorial-1-\u57fa\u672c\u542f\u52a8\u6846\u67b6",
+      "draft": false,
+      "updated": "2026-01-10T11:12:58"
+    },
+    "driver/CLINT.md": {
       "hash": "12ec01c7f537091f22aa5e05f5fb5766d8ffd45fd8f68c298a38ad048beeafa6",
       "slug": "clint",
       "draft": false,
       "updated": "2025-12-29T21:21:02"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _A.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _A.md": {
       "hash": "060790be2967f7f2af26085c533a590aee4279d6b239f32c04fe75a8b1ba4faf",
       "slug": "implementing-redis-in-c--a",
       "draft": false,
       "updated": "2025-12-29T21:46:11"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _B.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _B.md": {
       "hash": "529b969c7ea05bb370b2777584d4a8feaeddbb4787575aea9b07a18cbd575b98",
       "slug": "implementing-redis-in-c--b",
       "draft": false,
       "updated": "2025-12-29T21:46:38"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _C.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _C.md": {
       "hash": "31b3d8fe804d4e409eda58f1f38ba270a9c12f67221ca85bad87c23256d321fb",
       "slug": "implementing-redis-in-c--c",
       "draft": false,
       "updated": "2025-12-29T21:46:59"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _D.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _D.md": {
       "hash": "275b45175b0ab08b95a6282a8de0a0a12129663b876f14c3c51bf2e0993b8191",
       "slug": "implementing-redis-in-c--d",
       "draft": false,
       "updated": "2025-12-29T21:47:21"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _E.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _E.md": {
       "hash": "f28a4b72edb475d360a49b12d285b4db8ea28c2faeef35da188a4fe6cc8ccbb7",
       "slug": "implementing-redis-in-c--e",
       "draft": false,
       "updated": "2025-12-29T21:47:57"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _F.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _F.md": {
       "hash": "6e35dac058101ea5dec2226fd93cb1076b6144a2f8e8e9d9293b0c76bc60a0b8",
       "slug": "implementing-redis-in-c--f",
       "draft": false,
       "updated": "2025-12-29T21:48:13"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _G.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _G.md": {
       "hash": "43441212cf595627c9534fac145a0c2bde46ed2a5b3ee51ada832c12565361f9",
       "slug": "implementing-redis-in-c--g",
       "draft": false,
       "updated": "2025-12-29T21:48:38"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _H.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _H.md": {
       "hash": "5125d189ddeda81bb84e86a245c44b7288aaa5e41b17dbc12be9cb18a1801f9e",
       "slug": "implementing-redis-in-c--h",
       "draft": false,
       "updated": "2025-12-29T21:48:53"
     },
-    "D:/code/Python/simple-md-blog/posts/Redis_in_C/Implementing_Redis_in_C++ _I.md": {
+    "Redis_in_C/Implementing_Redis_in_C++ _I.md": {
       "hash": "10ef869114c5ed42b4a2d776b03fd509debddb93b84bb4f1dcd5aac9a3e9531b",
       "slug": "implementing-redis-in-c--i",
       "draft": false,
       "updated": "2025-12-29T21:49:08"
     },
-    "D:/code/Python/simple-md-blog/posts/Tools/gdb.md": {
+    "Tools/gdb.md": {
       "hash": "66ad74c6f639889ec01ff42e8bef757474631b8d10575f39a6e16ae2c1d5b285",
       "slug": "gdb",
       "draft": false,
       "updated": "2025-12-29T21:21:02"
     },
-    "D:/code/Python/simple-md-blog/posts/hello-world.md": {
+    "posts/hello-world.md": {
       "hash": "8aa17a74e2dca359573b9d82997056b0791ce6e54a4aaa041d687386fda74017",
       "slug": "hello-world",
       "draft": false,
       "updated": "2025-12-29T21:21:02"
     },
-    "D:/code/Python/simple-md-blog/posts/organizing-posts.md": {
+    "posts/organizing-posts.md": {
       "hash": "dde1a357581b87ba999587a593ac81078386a863c31300526cd37a39fe3ccb54",
       "slug": "organizing-posts",
       "draft": false,
       "updated": "2025-12-29T21:21:02"
     },
-    "D:/code/Python/simple-md-blog/posts/xv6/Project_xv6.md": {
+    "xv6/Project_xv6.md": {
       "hash": "a5a9f782bfcb4033bae53d85437ca69c9b67054322110caac20e547bebd26b8f",
       "slug": "project-xv6",
       "draft": false,
       "updated": "2025-12-29T21:54:55"
     },
-    "D:/code/Python/simple-md-blog/posts/xv6/find.md": {
+    "xv6/find.md": {
       "hash": "b5ac62dd17651372b7f7a1111d1259fbf61d41b6766b5ad62c30ef49d0adcec3",
       "slug": "find",
       "draft": false,
       "updated": "2025-12-29T21:55:09"
     },
-    "D:/code/Python/simple-md-blog/posts/xv6/pingpong.md": {
+    "xv6/pingpong.md": {
       "hash": "b278e7fa826b357530f46775b44b77ce0a213ad56e2671806b08304c4527fecd",
       "slug": "pingpong",
       "draft": false,
       "updated": "2025-12-29T21:55:22"
     },
-    "D:/code/Python/simple-md-blog/posts/xv6/primes.md": {
+    "xv6/primes.md": {
       "hash": "2564afe237e062345cc42c3493908f69ed880d768e60b071e1eb7de3ad585073",
       "slug": "primes",
       "draft": false,
       "updated": "2025-12-29T21:55:39"
     },
-    "D:/code/Python/simple-md-blog/posts/xv6/sleep.md": {
+    "xv6/sleep.md": {
       "hash": "025b1cd36282a8c047f27590e4755521545bf274a462e0d71b333bb9e0042e11",
       "slug": "sleep",
       "draft": false,
       "updated": "2025-12-29T21:55:53"
     },
-    "D:/code/Python/simple-md-blog/posts/xv6/xargs.md": {
+    "xv6/xargs.md": {
       "hash": "520b61456b52def97663543f0df1f7468e39a6cc3524f4efb8e2a2da85994f1d",
       "slug": "xargs",
       "draft": false,
