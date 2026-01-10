@@ -280,7 +280,22 @@ def build_site(args: argparse.Namespace) -> bool:
             date_dt, time_used = parse_date(meta, md_file)
             date_fmt = DATETIME_FMT if time_used else DATE_FMT
             date_str = date_dt.strftime(date_fmt)
-            updated_dt, updated_time_used = parse_updated(meta, md_file)
+            updated_dt = None
+            updated_time_used = False
+            explicit_updated = (meta.get("updated") or meta.get("update") or "").strip()
+            if not explicit_updated:
+                prev_info = previous_posts.get(rel, {})
+                prev_hash = prev_info.get("hash")
+                prev_updated = prev_info.get("updated")
+                current_hash = current_posts.get(rel, {}).get("hash")
+                if prev_updated and prev_hash and current_hash and prev_hash == current_hash:
+                    try:
+                        # Preserve updated timestamps for unchanged posts across git checkouts.
+                        updated_dt = dt.datetime.fromisoformat(prev_updated)
+                    except ValueError:
+                        updated_dt = None
+            if updated_dt is None:
+                updated_dt, updated_time_used = parse_updated(meta, md_file)
             updated_fmt = DATETIME_FMT if updated_time_used else DATE_FMT
             updated_str = updated_dt.strftime(updated_fmt)
             categories = get_categories(meta)

@@ -1,3 +1,2 @@
 dist/
 *.pyc
-build.lock.json
