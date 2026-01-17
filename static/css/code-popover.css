@@ -1,0 +1,116 @@
+.code-link {
+  border-bottom: 1px dashed var(--link-color);
+  cursor: pointer;
+}
+
+.code-link-error {
+  color: #e53e3e; /* Consider using a CSS variable */
+  border-bottom: 1px dashed #e53e3e;
+}
+
+.code-dialog {
+  position: fixed;
+  width: 90%;
+  max-width: 800px;
+  max-height: 80vh;
+  background-color: var(--card);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  border-radius: 18px;
+  z-index: 1000;
+  display: none; /* Hidden by default */
+  flex-direction: column;
+  overflow: hidden; /* Contain children */
+  /* Start centered */
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.code-dialog.is-visible {
+    display: flex;
+}
+
+.code-dialog-resize-handle {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 15px;
+    height: 15px;
+    cursor: nwse-resize;
+    opacity: 0.5;
+    background: linear-gradient(135deg, transparent 50%, var(--muted) 50%);
+}
+
+
+.code-dialog-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  cursor: move;
+}
+
+.code-dialog-title {
+    font-weight: 600;
+    color: var(--muted);
+}
+
+.panel-close-btn {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  line-height: 1;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.panel-code-container {
+  padding: 0;
+  overflow: auto; /* Changed to auto for the whole container */
+  flex-grow: 1;
+}
+
+.panel-code-container .codehilite {
+  margin: 0;
+}
+
+/* Style for highlighted line */
+.panel-code-container .hll {
+  background-color: rgba(255, 255, 0, 0.2);
+  display: block; 
+}
+
+/* Base styles for code, should work on light and dark themes */
+.panel-code-container pre {
+    margin: 0;
+    padding: 20px;
+    white-space: pre;
+    word-wrap: normal;
+    overflow-x: auto;
+    font-family: "Courier New", Courier, monospace;
+    line-height: 1.6;
+}
+
+/* Custom scrollbar for the code panel */
+.panel-code-container::-webkit-scrollbar {
+  width: 12px; /* Wider area for easier clicking */
+  height: 12px;
+}
+
+.panel-code-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.panel-code-container::-webkit-scrollbar-thumb {
+  background-color: var(--border);
+  border-radius: 6px;
+  border: 4px solid transparent; /* Creates padding around thumb */
+  background-clip: content-box;
+  opacity: 0.5;
+}
+
+.panel-code-container:hover::-webkit-scrollbar-thumb {
+  opacity: 1;
+}

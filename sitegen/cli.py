@@ -19,6 +19,7 @@ from .cache import (
     load_lock,
     write_lock,
 )
+from .code_linker import CodeLinkerExtension
 from .config import load_config, resolve_about_html, resolve_analytics, resolve_widget_html
 from .content import (
     count_words,
@@ -359,7 +360,13 @@ def build_site(args: argparse.Namespace) -> bool:
             if is_draft:
                 return result
             md = markdown.Markdown(
-                extensions=["fenced_code", "tables", "toc", "codehilite"],
+                extensions=[
+                    "fenced_code",
+                    "tables",
+                    "toc",
+                    "codehilite",
+                    CodeLinkerExtension(base_path=md_file.parent),
+                ],
                 extension_configs={
                     "toc": {"toc_depth": args.toc_depth},
                     "codehilite": {"guess_lang": False},

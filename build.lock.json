@@ -1,23 +1,25 @@
 {
   "version": 1,
-  "built_at": "2026-01-10T12:44:43",
-  "generator_hash": "bd056c2ba7da5a1bf776e68ee6b246c4b17fb70b11402307a3602f33d3305ced",
-  "templates_hash": "7f4f04f5e844ffb3f13f48075d08395bf6c5bfb4987886c903b2517b3d1ec452",
+  "built_at": "2026-01-17T22:13:14",
+  "generator_hash": "9e818bd0598cb51203617beac8dc2b65eb90de194216a96491a61d5ce464a936",
+  "templates_hash": "c2cd55922c0dbfe53bae7e0acc652c5e2ab3edd1df5b4c42f136333838bc4f43",
   "config_hash": "30635989198f386e23b2c132024455b6f5609b824780d300498e9f71e601874a",
   "snippets_hash": "cda0f81d61e5406c2bdda4b5105a3b0c59288c1bceddac54edb96ad8954b6a4c",
-  "static_hash": "a079c6afdd3be831b9af82e0aa4e6d81ceb2071d329eb3496396b502ebdf55af",
+  "static_hash": "de4d0ea2b0e6e46559cd1f0d66918ceace8e90f89283858c5cee76f39ed6f9b0",
   "static_files": [
+    "css/code-popover.css",
     "css/style.css",
     "images/sample.svg",
     "js/archive.js",
     "js/code-copy.js",
+    "js/code-popover.js",
     "js/search.js",
     "js/sidebar-tabs.js",
     "js/theme.js"
   ],
   "about_page_hash": "679a9facf6002f8f1a0cd3acba4f79b5c8e629e2e3850554db6fd850dd331e91",
-  "category_hash": "404d0c70c9c7347d3818171c1e681edec745d25fe650a01fc9da8e0522ff89e0",
-  "archive_hash": "532ea1b9572134c90aa86d89d184fab135a08ef6554cb5977e427e9e88de0653",
+  "category_hash": "d3f03ca1f7869c263502d24f44f08550c6bd8f2e809fbcfd2fe0631d0ac0196c",
+  "archive_hash": "014db93234eeca01c1f9541680a212a5e0fdf6e1cbe44ed061ae18ae270c2027",
   "posts": {
     "2025_12/2025_12_10.md": {
       "hash": "b55f3e0e6304fa28fc211db8f26f2057b0805142b933b82e8e8ced75e0bb9bf9",
@@ -90,6 +92,12 @@
       "slug": "frostvista-tutorial-1-\u57fa\u672c\u542f\u52a8\u6846\u67b6",
       "draft": false,
       "updated": "2026-01-10T11:12:58"
+    },
+    "OS/FrostVista Tutorial -- (2) UART\u9a71\u52a8\u7f16\u5199.md": {
+      "hash": "3e308d568c5e04f6ce929f19e61d71b86dac9e5324f1ba5acaee213015c5fc08",
+      "slug": "frostvista-tutorial-2-uart\u9a71\u52a8\u7f16\u5199",
+      "draft": false,
+      "updated": "2026-01-17T21:43:42"
     },
     "driver/CLINT.md": {
       "hash": "67e26fa3cbe583891a0c16f0bc31be1ee051c0a10e4c7e5693dc5d43b189c5d1",
