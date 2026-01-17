@@ -365,7 +365,7 @@ def build_site(args: argparse.Namespace) -> bool:
                     "tables",
                     "toc",
                     "codehilite",
-                    CodeLinkerExtension(base_path=md_file.parent),
+                    CodeLinkerExtension(base_path=md_file.parent, project_root=project_root),
                 ],
                 extension_configs={
                     "toc": {"toc_depth": args.toc_depth},

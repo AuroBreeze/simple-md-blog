@@ -41,7 +41,7 @@ dtc -I dtb -O dts -o virt.dts virt.dtb
 
 ## uart必要宏定义
 
-[参阅uart.h驱动定义](code:../uart.h#L1)
+[参阅uart.h驱动定义](code:/code_snippets/frostvista/uart.h#L1)
 
 这是基于`uart16550`的驱动的定义，不过`MSR`对我们写OS来说是没有什么必要使用的，具体可以自行了解。
 
@@ -57,7 +57,7 @@ dtc -I dtb -O dts -o virt.dts virt.dtb
 
 所以`Reg`的作用就是返回硬件地址，通过解引用后进行读写操作。
 
-[参阅Reg宏定义](code:../uart.h#L51)
+[参阅Reg宏定义](code:/code_snippets/frostvista/uart.h#L51)
 
 ## uart初始化
 

@@ -16,16 +16,22 @@ from pygments.formatters import HtmlFormatter
 RE_CODE_LINK = r"\[(?P<text>[^\]]+)\]\(code:(?P<path>[^#]+)#L(?P<line>\d+)\)"
 
 class CodeLinkerProcessor(InlineProcessor):
-    def __init__(self, pattern, md, base_path: Path):
+    def __init__(self, pattern, md, base_path: Path, project_root: Path):
         super().__init__(pattern, md)
         self.base_path = base_path
+        self.project_root = project_root
 
     def handleMatch(self, m, data):
-        file_path_str = m.group("path")
+        file_path_str = m.group("path").strip()
         line_num = int(m.group("line"))
         link_text = m.group("text")
         
-        file_path = (self.base_path / file_path_str).resolve()
+        if file_path_str.startswith('/'):
+            # Root-relative path
+            file_path = (self.project_root / file_path_str.lstrip('/')).resolve()
+        else:
+            # Page-relative path
+            file_path = (self.base_path / file_path_str).resolve()
 
         if not file_path.exists():
             return f'<a href="#" class="code-link-error">File not found: {html.escape(file_path_str)}</a>', m.start(0), m.end(0)
@@ -87,10 +93,15 @@ class CodeLinkerProcessor(InlineProcessor):
 
 
 class CodeLinkerExtension(Extension):
-    def __init__(self, base_path: Path, **kwargs):
+    def __init__(self, base_path: Path, project_root: Path, **kwargs):
         super().__init__(**kwargs)
         self.base_path = base_path
+        self.project_root = project_root
 
     def extendMarkdown(self, md):
-        md.inlinePatterns.register(CodeLinkerProcessor(RE_CODE_LINK, md, self.base_path), "code_linker", 175)
+        md.inlinePatterns.register(
+            CodeLinkerProcessor(RE_CODE_LINK, md, self.base_path, self.project_root), 
+            "code_linker", 
+            175
+        )
 
