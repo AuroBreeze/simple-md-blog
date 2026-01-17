@@ -13,7 +13,7 @@ from pygments import highlight
 from pygments.lexers import get_lexer_by_name
 from pygments.formatters import HtmlFormatter
 
-RE_CODE_LINK = r"\[(?P<path>[^\]]+)\]\(_code#L(?P<line>\d+)\)"
+RE_CODE_LINK = r"\[(?P<text>[^\]]+)\]\(code:(?P<path>[^#]+)#L(?P<line>\d+)\)"
 
 class CodeLinkerProcessor(InlineProcessor):
     def __init__(self, pattern, md, base_path: Path):
@@ -23,6 +23,7 @@ class CodeLinkerProcessor(InlineProcessor):
     def handleMatch(self, m, data):
         file_path_str = m.group("path")
         line_num = int(m.group("line"))
+        link_text = m.group("text")
         
         file_path = (self.base_path / file_path_str).resolve()
 
@@ -55,7 +56,8 @@ class CodeLinkerProcessor(InlineProcessor):
         el.set("data-code", highlighted_code)
         el.set("data-lang", lang)
         el.set("data-line", str(line_num))
-        el.text = file_path_str
+        # Use the captured link text for the link
+        el.text = link_text
         
         return el, m.start(0), m.end(0)
 

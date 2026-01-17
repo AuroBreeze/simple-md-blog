@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "built_at": "2026-01-17T22:13:14",
-  "generator_hash": "9e818bd0598cb51203617beac8dc2b65eb90de194216a96491a61d5ce464a936",
+  "built_at": "2026-01-17T22:19:41",
+  "generator_hash": "11a4c2b95d9a7a974eec9e67afe23841bd360a1d86c71867e916a5c86195b0b5",
   "templates_hash": "c2cd55922c0dbfe53bae7e0acc652c5e2ab3edd1df5b4c42f136333838bc4f43",
   "config_hash": "30635989198f386e23b2c132024455b6f5609b824780d300498e9f71e601874a",
   "snippets_hash": "cda0f81d61e5406c2bdda4b5105a3b0c59288c1bceddac54edb96ad8954b6a4c",
@@ -94,10 +94,10 @@
       "updated": "2026-01-10T11:12:58"
     },
     "OS/FrostVista Tutorial -- (2) UART\u9a71\u52a8\u7f16\u5199.md": {
-      "hash": "3e308d568c5e04f6ce929f19e61d71b86dac9e5324f1ba5acaee213015c5fc08",
+      "hash": "0a98925c53cd29a30396879c9bfd7af1346e21a0ce30445710a04150dcbd84f5",
       "slug": "frostvista-tutorial-2-uart\u9a71\u52a8\u7f16\u5199",
       "draft": false,
-      "updated": "2026-01-17T21:43:42"
+      "updated": "2026-01-17T22:19:17"
     },
     "driver/CLINT.md": {
       "hash": "67e26fa3cbe583891a0c16f0bc31be1ee051c0a10e4c7e5693dc5d43b189c5d1",
