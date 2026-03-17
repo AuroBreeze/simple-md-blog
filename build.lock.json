@@ -1,6 +1,6 @@
 {
   "version": 1,
-  "built_at": "2026-02-22T17:57:07",
+  "built_at": "2026-03-17T22:55:28",
   "generator_hash": "3a7857ad91b01b12901e7886a87f09bd5277b8b1e4ff0c6183c20d657583328f",
   "templates_hash": "32f14ecf216d157829cf24e1eb8b3db193fe817416f94f73017529bf3ad17fa7",
   "config_hash": "0c2414451d661e738798b43e3270af8d3dd27c1d531e8db79ed31b406ac92d2b",
@@ -18,8 +18,8 @@
     "images/sample.svg"
   ],
   "about_page_hash": "679a9facf6002f8f1a0cd3acba4f79b5c8e629e2e3850554db6fd850dd331e91",
-  "category_hash": "6a543b9fb3aa7aa8632bfe613c90e36ce301ab2238a25fe372771a00b6a0a32d",
-  "archive_hash": "4456491ca1a702d7f116884ebfd4b1d8f6c2e8b92d7ee1f3e579e425ab82b484",
+  "category_hash": "389edce5de0f686e40c45fa931012743c693a6c993a0fb638df28374ac58b267",
+  "archive_hash": "32fbd408c7d1468c90d0d4355e68ce58df4257555bdb13c8ef1eff1f64aefad8",
   "posts": {
     "2025_12/2025_12_10.md": {
       "hash": "b55f3e0e6304fa28fc211db8f26f2057b0805142b933b82e8e8ced75e0bb9bf9",
@@ -87,6 +87,12 @@
       "draft": false,
       "updated": "2026-01-03T21:20:26"
     },
+    "2026_3/3_13.md": {
+      "hash": "ca87f061c9420c1fac8a562245b2a943502d23c7128755bb57dfb978419c0113",
+      "slug": "3-13",
+      "draft": false,
+      "updated": "2026-03-13T20:45:05"
+    },
     "OS/FrostVista Tutorial -- (1) \u57fa\u672c\u542f\u52a8\u6846\u67b6.md": {
       "hash": "f4e595808f415fb4c9b1597619e46b2a72959c04a061e7c1498b478131510d7a",
       "slug": "frostvista-tutorial-1-\u57fa\u672c\u542f\u52a8\u6846\u67b6",
@@ -98,6 +104,12 @@
       "slug": "frostvista-tutorial-2-uart\u9a71\u52a8\u7f16\u5199",
       "draft": false,
       "updated": "2026-01-21T19:21:01"
+    },
+    "OS/FrostVista:Minimal_U-mode_implemention.md": {
+      "hash": "46c73aa7b43fa06604ffca803a2588b034bab5132a5a90d3786ef4c1d5480ffd",
+      "slug": "frostvista-minimal-u-mode-implemention",
+      "draft": false,
+      "updated": "2026-03-17T22:45:51"
     },
     "driver/CLINT.md": {
       "hash": "67e26fa3cbe583891a0c16f0bc31be1ee051c0a10e4c7e5693dc5d43b189c5d1",
