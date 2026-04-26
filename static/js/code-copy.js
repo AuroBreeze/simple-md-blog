@@ -36,6 +36,9 @@
   };
 
   const addCopyButton = (pre) => {
+    if (pre.classList.contains("mermaid")) {
+      return;
+    }
     let container = pre.parentElement;
     if (!container) {
       return;

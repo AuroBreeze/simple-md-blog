@@ -32,6 +32,7 @@ from .content import (
     parse_front_matter,
     slugify,
 )
+from .mermaid import MermaidExtension
 from .pages import (
     build_404,
     build_about,
@@ -365,6 +366,7 @@ def build_site(args: argparse.Namespace) -> bool:
                     "tables",
                     "toc",
                     "codehilite",
+                    MermaidExtension(),
                     CodeLinkerExtension(base_path=md_file.parent, project_root=project_root),
                 ],
                 extension_configs={
