@@ -1,9 +1,9 @@
 {
   "version": 1,
-  "built_at": "2026-04-27T20:14:39",
-  "generator_hash": "826dc80052667ca17fdaee7645a2ab8c0c1fca82602e409539046cd37fc3aeda",
-  "templates_hash": "ce79d5096178a2ead613a918f5f7e7fac69f3d9b87e6fe947b3a14e9ac51b15d",
-  "config_hash": "0c2414451d661e738798b43e3270af8d3dd27c1d531e8db79ed31b406ac92d2b",
+  "built_at": "2026-04-27T20:44:37",
+  "generator_hash": "368a5500134e5977173826b7abbee9e6e8d186d0515f983002e57f7dcc1a0578",
+  "templates_hash": "d10878fff7270c347dab5411f212a3c5a781b0633da4b3e79abd92f8b0473ef4",
+  "config_hash": "7bdc8023230fdfd5a13008f97ee8e9d3aa33835cb44eed8babf584ea11937faa",
   "snippets_hash": "cda0f81d61e5406c2bdda4b5105a3b0c59288c1bceddac54edb96ad8954b6a4c",
   "static_hash": "9d617656ccf33af758c68261fafe35625190935418ade019cbce04dbb85d916c",
   "static_files": [

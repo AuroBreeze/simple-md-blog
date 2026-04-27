@@ -453,6 +453,7 @@ def build_categories(
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
+    site_url = (getattr(args, "site_url", "") or "").strip()
     for category, posts in sorted(category_map.items(), key=lambda x: x[0].lower()):
         content = (
             '<div class="section-head">'
@@ -461,9 +462,12 @@ def build_categories(
             "</div>"
             f'<div class="post-grid">{build_post_cards(posts, root)}</div>'
         )
+        page_title = f"{category} | {args.site_name}"
+        category_url = join_url(site_url, f"categories/{slugify(category)}.html") if site_url else ""
+        seo_tags = generate_seo_tags(args.site_name, page_title, args.site_description, category_url)
         html_doc = render_template(
             base_template,
-            title=html.escape(f"{category} | {args.site_name}"),
+            title=html.escape(page_title),
             root=root,
             content=content,
             sidebar=sidebar,
@@ -475,6 +479,7 @@ def build_categories(
             theme_default=theme_default,
             rss_link=rss_link,
             analytics=analytics_html,
+            seo_tags=seo_tags,
         )
         write_text(output_dir / "categories" / f"{slugify(category)}.html", html_doc)
 
@@ -496,6 +501,7 @@ def build_search(
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
+    site_url = (getattr(args, "site_url", "") or "").strip()
     content = (
         '<div class="section-head">'
         "<h2>Search</h2>"
@@ -508,9 +514,12 @@ def build_search(
         '<div id="search-results" class="post-grid"></div>'
     )
     extra_head = f'<script src="{root}/js/search.js" defer></script>'
+    page_title = f"{args.site_name} | Search"
+    search_url = join_url(site_url, "search.html") if site_url else ""
+    seo_tags = generate_seo_tags(args.site_name, page_title, args.site_description, search_url)
     html_doc = render_template(
         base_template,
-        title=html.escape(f"{args.site_name} | Search"),
+        title=html.escape(page_title),
         root=root,
         content=content,
         sidebar=sidebar,
@@ -522,6 +531,7 @@ def build_search(
         theme_default=theme_default,
         rss_link=rss_link,
         analytics=analytics_html,
+        seo_tags=seo_tags,
     )
     write_text(output_dir / "search.html", html_doc)
 
@@ -573,15 +583,19 @@ def build_about(
     html_content = add_img_loading(html_content)
     sidebar = build_sidebar(category_map, ".", about_html, toc_html, widget_html)
     rss_link = build_rss_link(".", args)
+    site_url = (getattr(args, "site_url", "") or "").strip()
     content = (
         '<article class="post">'
         f'<h1 class="post-title">{html.escape(title)}</h1>'
         f'<div class="post-body">{html_content}</div>'
         "</article>"
     )
+    page_title = f"{title} | {args.site_name}"
+    about_url = join_url(site_url, "about.html") if site_url else ""
+    seo_tags = generate_seo_tags(args.site_name, page_title, args.site_description, about_url)
     html_doc = render_template(
         base_template,
-        title=html.escape(f"{title} | {args.site_name}"),
+        title=html.escape(page_title),
         root=".",
         content=content,
         sidebar=sidebar,
@@ -593,6 +607,7 @@ def build_about(
         theme_default=theme_default,
         rss_link=rss_link,
         analytics=analytics_html,
+        seo_tags=seo_tags,
     )
     write_text(output_dir / "about.html", html_doc)
 
@@ -612,6 +627,7 @@ def build_archive(
     root = "."
     rss_link = build_rss_link(root, args)
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
+    site_url = (getattr(args, "site_url", "") or "").strip()
     archive_groups: dict[str, list[dict]] = {}
     date_groups: dict[str, list[dict]] = {}
     year_counts: dict[int, int] = {}
@@ -697,9 +713,12 @@ def build_archive(
         f"{controls}"
         f"{views}"
     )
+    page_title = f"Archive | {args.site_name}"
+    archive_url = join_url(site_url, "archive.html") if site_url else ""
+    seo_tags = generate_seo_tags(args.site_name, page_title, args.site_description, archive_url)
     html_doc = render_template(
         base_template,
-        title=html.escape(f"Archive | {args.site_name}"),
+        title=html.escape(page_title),
         root=root,
         content=content,
         sidebar=sidebar,
@@ -711,6 +730,7 @@ def build_archive(
         theme_default=theme_default,
         rss_link=rss_link,
         analytics=analytics_html,
+        seo_tags=seo_tags,
     )
     write_text(output_dir / "archive.html", html_doc)
 
@@ -920,5 +940,6 @@ def build_404(
         theme_default=theme_default,
         rss_link=rss_link,
         analytics=analytics_html,
+        seo_tags="",
     )
     write_text(output_dir / "404.html", html_doc)

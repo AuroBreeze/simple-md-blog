@@ -55,6 +55,9 @@ def render_template(template: str, **context: str) -> str:
     for key in late_keys:
         if key in context:
             output = output.replace(f"{{{{{key}}}}}", context[key])
+    
+    # Remove any unreplaced placeholders like {{seo_tags}}
+    output = re.sub(r"\{\{.*?\}\}", "", output)
     return output
 
 
