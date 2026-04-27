@@ -53,6 +53,13 @@ enable_sitemap = true
 # 是否生成 404.html
 enable_404 = true
 
+# IndexNow 索引优化
+# 是否启用 IndexNow 提交（需要提供有效 Key）
+enable_indexnow = true
+# IndexNow API Key
+# 建议通过环境变量 INDEXNOW_KEY 设置，避免明文写在配置文件中
+indexnow_key = ""
+
 # 侧栏 About 文本（纯文本，支持换行）
 about_text = """
 A tiny, fast Markdown blog for GitHub Pages.

@@ -45,6 +45,8 @@ from .pages import (
     build_search,
     build_search_index,
     build_sitemap,
+    notify_indexnow,
+    write_indexnow_key,
 )
 from .render import (
     copy_static,
@@ -55,7 +57,7 @@ from .render import (
     strip_tags,
     write_text,
 )
-from .utils import clean_output_dir, parse_bool, parse_int, write_nojekyll
+from .utils import clean_output_dir, join_url, parse_bool, parse_int, write_nojekyll
 
 DATE_FMT = "%Y-%m-%d"
 DATETIME_FMT = "%Y-%m-%d %H:%M"
@@ -652,6 +654,14 @@ def build_site(args: argparse.Namespace) -> bool:
             except FileNotFoundError:
                 pass
 
+    if args.enable_indexnow and args.indexnow_key:
+        write_indexnow_key(output_dir, args.indexnow_key)
+        if site_url:
+            urls_to_notify = [join_url(site_url, f"posts/{slug}.html") for slug in sorted(changed_slugs)]
+            # Always include the homepage when something changed
+            urls_to_notify.insert(0, site_url if site_url.endswith("/") else site_url + "/")
+            notify_indexnow(site_url, args.indexnow_key, urls_to_notify)
+
     build_state = {
         "version": LOCK_VERSION,
         "built_at": dt.datetime.now().replace(microsecond=0).isoformat(),
@@ -801,6 +811,17 @@ def main() -> None:
         action=argparse.BooleanOptionalAction,
         default=cfg_bool("enable_404", True),
         help="Generate 404.html.",
+    )
+    parser.add_argument(
+        "--enable-indexnow",
+        action=argparse.BooleanOptionalAction,
+        default=cfg_bool("enable_indexnow", False),
+        help="Notify search engines using IndexNow.",
+    )
+    parser.add_argument(
+        "--indexnow-key",
+        default=os.environ.get("INDEXNOW_KEY") or cfg_str("indexnow_key", ""),
+        help="IndexNow API key (can also be set via INDEXNOW_KEY env var).",
     )
     parser.add_argument(
         "--write-nojekyll",

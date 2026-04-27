@@ -40,6 +40,8 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-simple-md-blog-${{ github.ref_name }}-
       - name: Build site
+        env:
+          INDEXNOW_KEY: ${{ secrets.INDEXNOW_KEY }}
         run: python build.py --output dist
       - name: Save build cache
         uses: actions/cache/save@v4

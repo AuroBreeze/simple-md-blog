@@ -10,8 +10,50 @@ from pathlib import Path
 import markdown
 
 from .content import extract_title, normalize_list_spacing, parse_front_matter, slugify
+import json
+import urllib.request
 from .render import add_img_loading, fix_relative_img_src, render_template, strip_tags, write_text
 from .utils import iso_date, join_url, parse_bool, rfc822_date
+
+
+def notify_indexnow(site_url: str, key: str, urls: list[str]) -> None:
+    if not site_url or not key or not urls:
+        return
+    host = site_url.split("://")[-1].split("/")[0]
+    data = {
+        "host": host,
+        "key": key,
+        "keyLocation": join_url(site_url, f"{key}.txt"),
+        "urlList": urls,
+    }
+    payload = json.dumps(data).encode("utf-8")
+    endpoints = [
+        "https://api.indexnow.org/indexnow",
+        "https://www.bing.com/indexnow",
+        "https://search.yandex.ru/indexnow",
+    ]
+    for url in endpoints:
+        try:
+            req = urllib.request.Request(
+                url,
+                data=payload,
+                headers={"Content-Type": "application/json; charset=utf-8"},
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                status = resp.getcode()
+                if status == 200:
+                    print(f"IndexNow notification sent to {url} successfully.")
+                else:
+                    print(f"IndexNow notification to {url} failed with status {status}.")
+        except Exception as e:
+            print(f"Failed to notify IndexNow endpoint {url}: {e}")
+
+
+def write_indexnow_key(output_dir: Path, key: str) -> None:
+    if not key:
+        return
+    write_text(output_dir / f"{key}.txt", key)
 
 
 def wrap_cdata(text: str) -> str:
