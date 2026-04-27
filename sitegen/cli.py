@@ -299,12 +299,12 @@ def build_site(args: argparse.Namespace) -> bool:
         write_text(output_dir / "CNAME", f"{custom_domain}\n")
     if args.write_nojekyll:
         write_nojekyll(output_dir)
-    write_robots_txt(output_dir, site_url)
-
     site_url = (args.site_url or "").strip()
     if not site_url and custom_domain:
         site_url = f"https://{custom_domain}"
     args.site_url = site_url
+
+    write_robots_txt(output_dir, site_url)
 
     posts = []
     current_post_state = {}
