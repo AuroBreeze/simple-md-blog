@@ -658,9 +658,19 @@ def build_site(args: argparse.Namespace) -> bool:
     if args.enable_indexnow and args.indexnow_key:
         write_indexnow_key(output_dir, args.indexnow_key)
         if site_url:
-            urls_to_notify = [join_url(site_url, f"posts/{slug}.html") for slug in sorted(changed_slugs)]
-            # Always include the homepage when something changed
-            urls_to_notify.insert(0, site_url if site_url.endswith("/") else site_url + "/")
+            # Safety threshold: If too many posts are "changed" at once (e.g. cache loss or full rebuild),
+            # only notify the homepage to avoid being flagged as spam by search engines.
+            total_post_count = len(posts)
+            change_count = len(changed_slugs)
+            
+            if total_post_count > 5 and change_count > (total_post_count * 0.5):
+                print(f"IndexNow: Large change detected ({change_count}/{total_post_count}). Notifying homepage only.")
+                urls_to_notify = [site_url if site_url.endswith("/") else site_url + "/"]
+            else:
+                urls_to_notify = [join_url(site_url, f"posts/{slug}.html") for slug in sorted(changed_slugs)]
+                # Always include the homepage when something changed
+                urls_to_notify.insert(0, site_url if site_url.endswith("/") else site_url + "/")
+            
             notify_indexnow(site_url, args.indexnow_key, urls_to_notify)
 
     build_state = {
