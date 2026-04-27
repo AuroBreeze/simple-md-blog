@@ -43,9 +43,11 @@ def notify_indexnow(site_url: str, key: str, urls: list[str]) -> None:
             with urllib.request.urlopen(req, timeout=10) as resp:
                 status = resp.getcode()
                 if status == 200:
-                    print(f"IndexNow notification sent to {url} successfully.")
+                    print(f"IndexNow notification sent to {url} successfully (OK).")
+                elif status == 202:
+                    print(f"IndexNow notification sent to {url} successfully (Accepted).")
                 else:
-                    print(f"IndexNow notification to {url} failed with status {status}.")
+                    print(f"IndexNow notification to {url} returned status {status}.")
         except Exception as e:
             print(f"Failed to notify IndexNow endpoint {url}: {e}")
 
