@@ -232,6 +232,20 @@ def build_post_cards(posts: list[dict], root: str) -> str:
     return "\n".join(cards)
 
 
+def generate_seo_tags(site_name: str, title: str, description: str, url: str) -> str:
+    tags = [
+        f'<meta property="og:site_name" content="{html.escape(site_name)}">',
+        f'<meta property="og:title" content="{html.escape(title)}">',
+        f'<meta property="og:description" content="{html.escape(description)}">',
+        '<meta property="og:type" content="website">',
+        '<meta name="twitter:card" content="summary">',
+    ]
+    if url:
+        tags.append(f'<link rel="canonical" href="{url}">')
+        tags.append(f'<meta property="og:url" content="{url}">')
+    return "\n  ".join(tags)
+
+
 def build_index(
     base_template: str,
     output_dir: Path,
@@ -277,6 +291,7 @@ def build_index(
     sidebar = build_sidebar(category_map, root, about_html, widget_html=widget_html)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
+    site_url = (getattr(args, "site_url", "") or "").strip()
     per_page = max(1, int(getattr(args, "posts_per_page", 8)))
     total_pages = max(1, math.ceil(len(posts) / per_page))
 
@@ -292,8 +307,14 @@ def build_index(
             f"{build_pagination(page, total_pages)}"
         )
         page_title = f"{args.site_name} | Home"
+        current_page_url = ""
+        if site_url:
+            current_page_url = join_url(site_url, "index.html" if page == 1 else page_url(page))
         if page > 1:
             page_title = f"{args.site_name} | Page {page}"
+        
+        seo_tags = generate_seo_tags(args.site_name, page_title, args.site_description, current_page_url)
+        
         html_doc = render_template(
             base_template,
             title=html.escape(page_title),
@@ -308,6 +329,7 @@ def build_index(
             theme_default=theme_default,
             rss_link=rss_link,
             analytics=analytics_html,
+            seo_tags=seo_tags,
         )
         filename = "index.html" if page == 1 else page_url(page)
         write_text(output_dir / filename, html_doc)
@@ -333,6 +355,7 @@ def build_posts(
     rss_link = build_rss_link(root, args)
     site_name = html.escape(args.site_name)
     site_description = html.escape(args.site_description)
+    site_url = (getattr(args, "site_url", "") or "").strip()
     archive_map: dict[str, list[dict]] = {}
     for post in posts:
         for label in post.get("archives", []):
@@ -384,6 +407,8 @@ def build_posts(
             f'<div class="post-footer"><a href="{root}/index.html">Back to home</a></div>'
             "</article>"
         )
+        post_url = join_url(site_url, f"posts/{post['slug']}.html") if site_url else ""
+        seo_tags = generate_seo_tags(args.site_name, post["title"], post["summary"], post_url)
         html_doc = render_template(
             base_template,
             title=html.escape(f"{post['title']} | {args.site_name}"),
@@ -398,6 +423,7 @@ def build_posts(
             theme_default=theme_default,
             rss_link=rss_link,
             analytics=analytics_html,
+            seo_tags=seo_tags,
         )
         write_text(output_dir / "posts" / f"{post['slug']}.html", html_doc)
 

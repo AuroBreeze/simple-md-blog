@@ -53,6 +53,13 @@ def write_nojekyll(output_dir: Path) -> None:
     output_dir.joinpath(".nojekyll").write_text("", encoding="utf-8")
 
 
+def write_robots_txt(output_dir: Path, site_url: str) -> None:
+    lines = ["User-agent: *", "Allow: /"]
+    if site_url:
+        lines.append(f"Sitemap: {join_url(site_url, 'sitemap.xml')}")
+    output_dir.joinpath("robots.txt").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
 def clean_output_dir(output_dir: Path, project_root: Path) -> None:
     if not output_dir.exists():
         return

@@ -57,7 +57,7 @@ from .render import (
     strip_tags,
     write_text,
 )
-from .utils import clean_output_dir, join_url, parse_bool, parse_int, write_nojekyll
+from .utils import clean_output_dir, join_url, parse_bool, parse_int, write_nojekyll, write_robots_txt
 
 DATE_FMT = "%Y-%m-%d"
 DATETIME_FMT = "%Y-%m-%d %H:%M"
@@ -299,6 +299,7 @@ def build_site(args: argparse.Namespace) -> bool:
         write_text(output_dir / "CNAME", f"{custom_domain}\n")
     if args.write_nojekyll:
         write_nojekyll(output_dir)
+    write_robots_txt(output_dir, site_url)
 
     site_url = (args.site_url or "").strip()
     if not site_url and custom_domain:
