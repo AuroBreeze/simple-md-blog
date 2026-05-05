@@ -1,5 +1,5 @@
 ---
-title: 一次FrostVista的排错
+title: spinlock和sleeploc锁的使用极其注意事项
 date: 2026-05-03
 time: 15:28
 archive: FrostVista
