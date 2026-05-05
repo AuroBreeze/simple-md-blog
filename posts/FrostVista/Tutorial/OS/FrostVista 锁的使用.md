@@ -1,5 +1,5 @@
 ---
-title: spinlock和sleeploc锁的使用极其注意事项
+title: spinlock和sleeplock锁的使用极其注意事项
 date: 2026-05-03
 time: 15:28
 archive: FrostVista
