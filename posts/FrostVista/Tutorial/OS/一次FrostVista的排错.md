@@ -3,12 +3,7 @@ title: 一次FrostVista的排错
 date: 2026-05-03
 time: 15:28
 archive: FrostVista
-categories:
-  - OS
-  - Kernel
-  - C/C++
-  - FrostVista
-  - RISC-V
+categories: [OS, Kernel, C/C++, FrostVista, RISC-V]
 summary:
 ---
 # 一次FrostVista的排错
